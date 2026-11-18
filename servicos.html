@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Conheça as áreas de atuação e a proposta institucional da ELOS 360 GLOBAL.">
+<title>Áreas de atuação | ELOS 360 GLOBAL</title>
+<style>
+:root{font-family:Arial,Helvetica,sans-serif;color:#13294e;background:#eef4fb;line-height:1.55}
+*{box-sizing:border-box}body{margin:0}header{background:linear-gradient(120deg,#061939,#0a4fa4);color:#fff;text-align:center;padding:22px}
+header img{width:min(340px,88vw);height:auto}h1{font-size:1.65rem;margin:10px 0 2px}header p{margin:0 0 10px}nav a{color:#fff;font-weight:bold;margin:0 10px}
+main{max-width:1120px;margin:auto;padding:26px 20px 52px}h2{color:#082b5c}
+.notice{background:white;border-left:5px solid #096ad9;border-radius:10px;padding:15px 19px}
+.filters{background:white;border:1px solid #d6e1f0;padding:20px;border-radius:14px;margin:20px 0}
+label{display:block;font-weight:bold;margin:4px 0 7px}input,select{padding:12px;border:1px solid #9ab0d1;border-radius:8px;font:inherit;width:100%}
+.controls{display:grid;grid-template-columns:2fr 1fr;gap:14px}@media(max-width:650px){.controls{grid-template-columns:1fr}}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:16px}.card{background:white;border-radius:12px;border-top:4px solid #0866d7;padding:22px;box-shadow:0 4px 18px #1b3e6714}.card:target{outline:3px solid #0c69e9;outline-offset:3px;scroll-margin-top:25px}.card h3{font-size:1.12rem;margin:0;color:#0755b6}.card p{margin:8px 0;color:#40536f}.area{font-size:.78rem;font-weight:bold;letter-spacing:.03em;color:#446181;text-transform:uppercase}.foot{font-size:.88rem;color:#536985}
+footer{background:#071c41;color:#d4e3ff;text-align:center;padding:22px}footer a{color:#fff}
+</style>
+</head><body>
+<header>
+<img src="logo-horizontal.png?v=elos-20261116" alt="Identidade ELOS 360 GLOBAL">
+<h1>Áreas de atuação e conexões</h1><p>Conexões que transformam vidas</p>
+<nav aria-label="Navegação"><a href="index.html">Início</a><a href="painel.html">Painel</a><a href="acesso.html">Perfis</a></nav>
+</header>
+<main>
+<section class="notice">
+<h2>ELOS 360 GLOBAL</h2>
+<p>Plataforma multidisciplinar de soluções, gestão e conexões nacionais e internacionais, com atuação prevista em serviços profissionais, projetos, negócios e cooperação institucional.</p>
+<p><strong>Informações institucionais reais; funcionalidades digitais em implantação.</strong> Este catálogo não cria contratos, cadastros ou atendimentos. Não envie CPF, CNIS, senhas, arquivos, dados médicos ou financeiros por esta página.</p>
+</section>
+<section class="filters" aria-label="Pesquisa das áreas de atuação">
+<div class="controls"><div><label for="search">Pesquisar serviços e áreas</label><input id="search" type="search" maxlength="100" placeholder="Ex.: aposentadoria, negócios, educação" autocomplete="off"></div>
+<div><label for="category">Categoria</label><select id="category"><option value="todos">Todas as áreas</option><option value="servicos">Serviços profissionais</option><option value="projetos">Projetos e programas</option><option value="conexoes">Conexões e investimentos</option></select></div></div>
+<p id="count" aria-live="polite"></p></section>
+<div class="cards" id="catalog">
+<article id="previdencia" class="card" data-category="servicos"><div class="area">Serviços profissionais</div><h3>Previdência</h3><p>Orientação previdenciária, análise de benefícios e planejamento de fluxos de CNIS e Raio-X Previdenciário.</p></article>
+<article id="juridico" class="card" data-category="servicos"><div class="area">Serviços profissionais</div><h3>Jurídico</h3><p>Organização e acompanhamento de processos, contratos e serviços jurídicos.</p></article>
+<article id="saude" class="card" data-category="projetos"><div class="area">Projetos e programas</div><h3>Saúde</h3><p>Organização de programas de saúde e iniciativas assistenciais.</p></article>
+<article id="educacao" class="card" data-category="projetos"><div class="area">Projetos e programas</div><h3>Educação</h3><p>Capacitação, formação e desenvolvimento de projetos educacionais.</p></article>
+<article id="empresarial" class="card" data-category="servicos"><div class="area">Serviços profissionais</div><h3>Gestão empresarial</h3><p>Consultoria, organização e desenvolvimento de atividades empresariais.</p></article>
+<article id="financeiro" class="card" data-category="servicos"><div class="area">Serviços profissionais</div><h3>Gestão financeira</h3><p>Planejamento, acompanhamento de indicadores e organização financeira.</p></article>
+<article id="network" class="card" data-category="conexoes"><div class="area">Conexões e investimentos</div><h3>Network Global</h3><p>Conexões entre pessoas, empresas, instituições e oportunidades profissionais.</p></article>
+<article id="investidores" class="card" data-category="conexoes"><div class="area">Conexões e investimentos</div><h3>Investidores e parceiros</h3><p>Estruturação e apresentação institucional de projetos e oportunidades de parceria.</p></article>
+<article id="cooperacao" class="card" data-category="conexoes"><div class="area">Conexões e investimentos</div><h3>Cooperação internacional</h3><p>Projetos colaborativos e conexões entre organizações do Brasil e do exterior.</p></article>
+</div>
+<p id="empty" class="foot" hidden>Nenhuma área corresponde à pesquisa. Tente outro termo.</p>
+<section class="notice" style="margin-top:24px"><h2>ELORA — Assistente virtual</h2><p>A ELORA será a assistente digital identificada da ELOS 360 GLOBAL. O atendimento automatizado, a triagem de clientes e os fluxos transacionais estão em desenvolvimento e ainda não funcionam nesta página.</p></section>
+<p class="foot">Conteúdo de apresentação institucional. Não implica disponibilidade imediata de serviços automatizados ou de profissionais em todas as localidades.</p>
+</main><footer>ELOS 360 GLOBAL © 2026 — Conexões que transformam vidas
+<p style="overflow-wrap:anywhere">Contato institucional <a style="color:inherit;text-decoration:underline" href="mailto:contato@elos360global.com.br">contato@elos360global.com.br</a></p>
+</footer>
+<script>
+"use strict";
+const search=document.getElementById("search"),category=document.getElementById("category"),cards=Array.from(document.querySelectorAll(".card")),count=document.getElementById("count"),empty=document.getElementById("empty");
+function normalize(value){return value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();}
+function filter(){
+ const term=normalize(search.value.trim()),type=category.value;
+ let visible=0;
+ for(const card of cards){
+  const show=(type==="todos"||card.dataset.category===type)&&normalize(card.textContent).includes(term);
+  card.hidden=!show;
+  if(show)visible++;
+ }
+ count.textContent=visible+" de "+cards.length+" áreas exibidas";
+ empty.hidden=visible!==0;
+}
+search.addEventListener("input",filter);category.addEventListener("change",filter);filter();
+</script></body></html>

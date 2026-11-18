@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Área de Acesso — ELOS 360 GLOBAL (Prévia)</title>
+<style>
+:root{color-scheme:light;--navy:#071d41;--blue:#0757b4;--border:#dce5f1}
+*{box-sizing:border-box}body{margin:0;background:#f1f5fb;color:#152944;font:16px/1.6 Arial,sans-serif}
+header{background:linear-gradient(120deg,#061a3b,#0b4c9b);padding:24px 18px;color:white;text-align:center}
+header img{width:min(360px,85%);height:auto}header h1{margin:8px 0;font-size:1.55rem}
+main{max-width:1000px;margin:30px auto;padding:0 20px 50px}
+.notice{padding:17px 20px;background:#fff4dc;border-left:5px solid #ad7115;border-radius:10px}
+.panel{margin-top:22px;padding:24px;background:white;border-radius:16px;box-shadow:0 8px 26px #0b24511a}
+label{display:block;font-weight:700;margin:14px 0 6px}select{width:100%;max-width:460px;padding:12px;border:1px solid #9caec6;border-radius:9px;font:inherit}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:15px;margin-top:20px}
+.card{border:1px solid var(--border);border-top:4px solid var(--blue);border-radius:12px;padding:18px;background:white}
+.card h3{margin:0 0 7px;color:var(--blue);font-size:1.02rem}.card p{font-size:.92rem;margin:0;color:#48586c}
+a{color:#0757b4}footer{text-align:center;color:#60718b;padding:20px}small{color:#51647d}
+</style>
+</head>
+<body>
+<header><img src="logo-horizontal.png?v=elos-20261116" alt="ELOS 360 GLOBAL"><h1>Área de Acesso — Prévia dos Perfis</h1><p>Conexões que transformam vidas</p></header>
+<main>
+<section class="notice" role="status">
+<strong>Ambiente demonstrativo. Não existe login ativo nesta página.</strong>
+<p>O seletor abaixo apenas mostra exemplos de módulos. Não autentica usuários nem concede acesso a dados. Não informe senha, CPF, CNIS, documentos ou dados pessoais.</p>
+</section>
+<section class="panel">
+<h2>Visualização dos perfis</h2><p>Selecione um perfil fictício para visualizar as áreas previstas.</p>
+<label for="perfil">Perfil demonstrativo</label>
+<select id="perfil">
+<option value="admin">Administração geral</option><option value="previdencia">Previdência</option>
+<option value="juridico">Jurídico</option><option value="saude">Saúde</option>
+<option value="educacao">Educação</option><option value="financeiro">Financeiro</option>
+<option value="parceiro">Investidores e parceiros</option><option value="cliente">Cliente</option>
+</select>
+<p id="descricao" aria-live="polite"></p>
+<div id="modulos" class="grid"></div>
+<small>Todos os módulos permanecem em desenvolvimento. As permissões reais deverão ser verificadas no servidor, nunca neste seletor.</small>
+</section>
+<p><a href="index.html">Voltar ao início</a> · <a href="painel.html">Ver painel público demonstrativo</a></p>
+</main><footer>ELOS 360 GLOBAL © 2026 — Versão de testes
+<p style="overflow-wrap:anywhere">Contato institucional <a style="color:inherit;text-decoration:underline" href="mailto:contato@elos360global.com.br">contato@elos360global.com.br</a></p>
+</footer>
+<script>
+"use strict";
+const catalog={
+ previdencia:["Previdência","CNIS e Raio-X previdenciário (simulação)"],
+ juridico:["Jurídico","Processos, contratos e acompanhamento"],
+ saude:["Saúde","Projetos e gestão de programas assistenciais"],
+ educacao:["Educação","Capacitação e projetos educacionais"],
+ empresarial:["Empresarial","Consultoria e operações"],
+ financeiro:["Financeiro","Planejamento e indicadores"],
+ network:["Network Global","Conexões e oportunidades internacionais"],
+ investidores:["Investidores","Projetos e parcerias"],
+ cooperacao:["Cooperação Internacional","Projetos institucionais"],
+ clientes:["Meu atendimento","Acompanhamento do próprio atendimento (futuro)"]
+};
+const profiles={
+ admin:{label:"Administração geral",areas:["previdencia","juridico","saude","educacao","empresarial","financeiro","network","investidores","cooperacao"]},
+ previdencia:{label:"Previdência",areas:["previdencia"]},
+ juridico:{label:"Jurídico",areas:["juridico"]},
+ saude:{label:"Saúde",areas:["saude"]},
+ educacao:{label:"Educação",areas:["educacao"]},
+ financeiro:{label:"Financeiro",areas:["financeiro"]},
+ parceiro:{label:"Investidores e parceiros",areas:["network","investidores","cooperacao"]},
+ cliente:{label:"Cliente",areas:["clientes"]}
+};
+const select=document.querySelector("#perfil"),target=document.querySelector("#modulos"),description=document.querySelector("#descricao");
+function showPreview(){
+ const profile=profiles[select.value]||profiles.cliente;
+ description.textContent="Prévia visual do perfil: "+profile.label+". Sem autenticação ou acesso a dados.";
+ target.replaceChildren();
+ for(const key of profile.areas){
+  const item=catalog[key];const card=document.createElement("article");card.className="card";
+  const title=document.createElement("h3");title.textContent=item[0];
+  const explanation=document.createElement("p");explanation.textContent=item[1];
+  card.append(title,explanation);target.append(card);
+ }
+}
+select.addEventListener("change",showPreview);showPreview();
+</script>
+</body></html>

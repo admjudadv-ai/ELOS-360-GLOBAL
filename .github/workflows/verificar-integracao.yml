@@ -1,0 +1,323 @@
+name: Verificar integracao ELO 360
+on:
+  push:
+    branches: [integracao-auth-segura-2026-11-12]
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'api/**'
+      - 'db/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - '.github/workflows/verificar-integracao.yml'
+permissions:
+  contents: read
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Sintaxe da API e autenticacao
+        run: |
+          node --check api/server.js
+          node --check backend/server.js
+          node --check backend/security.js
+          node --check backend/connection-diagnostic.js
+          node --check backend/test/connection-diagnostic.test.js
+          node --check backend/permissions.js
+          node --check backend/mfa.js
+          node --check backend/recovery.js
+          node --check backend/test/recovery-db.test.js
+          node --check backend/test/mfa-flow.test.js
+          node --check backend/scripts/check-db-readiness.js
+          node --check backend/scripts/migrate-empty-db.js
+          node --check backend/scripts/bootstrap-admin-mfa.js
+          node --check backend/test/bootstrap-admin.test.js
+          node --check backend/test/financial-schema.test.js
+          node --check backend/test/initial-migration.test.js
+          node --check backend/test/db-readiness.test.js
+          node --check backend/scripts/provision-ci-admin.js
+          node --check backend/test/integration.test.js
+          node --check backend/test/rls.test.js
+          node --check backend/test/relationships.test.js
+      - name: Validar sintaxe do assistente de configuração
+        run: bash -n backend/scripts/primeiro-acesso-assistido.sh
+      - name: Validar JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('package.json'));JSON.parse(require('fs').readFileSync('backend/package.json'))"
+      - name: Testes de publicacao isolada
+        run: node --test tests/*.test.js
+      - name: Testes unitarios de autenticacao ficticia
+        run: node --test backend/test/security.test.js backend/test/permissions.test.js backend/test/mfa.test.js backend/test/recovery.test.js backend/test/connection-diagnostic.test.js
+  auth-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: elo_ci
+          POSTGRES_PASSWORD: ficticia_apenas_ci
+          POSTGRES_DB: elo360_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U elo_ci -d elo360_ci"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      CI_ELO_DB: ephemeral
+      DATABASE_URL: postgresql://elo_ci:ficticia_apenas_ci@127.0.0.1:5432/elo360_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependencias do prototipo (ambiente CI)
+        working-directory: backend
+        run: npm install --no-audit --no-fund
+      - name: Teste integrado com banco e usuarios ficticios
+        working-directory: backend
+        run: node --test test/integration.test.js
+  tenant-rls-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: elo_ci
+          POSTGRES_PASSWORD: ficticia_apenas_ci
+          POSTGRES_DB: elo360_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U elo_ci -d elo360_ci"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      CI_ELO_DB: ephemeral
+      DATABASE_URL: postgresql://elo_ci:ficticia_apenas_ci@127.0.0.1:5432/elo360_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependencias do banco de testes
+        working-directory: backend
+        run: npm install --no-audit --no-fund
+      - name: Testar isolamento real por organizacao (RLS)
+        working-directory: backend
+        run: node --test test/rls.test.js
+  tenant-relationships-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: elo_ci
+          POSTGRES_PASSWORD: ficticia_apenas_ci
+          POSTGRES_DB: elo360_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U elo_ci -d elo360_ci"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      CI_ELO_DB: ephemeral
+      DATABASE_URL: postgresql://elo_ci:ficticia_apenas_ci@127.0.0.1:5432/elo360_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependencias para integridade referencial
+        working-directory: backend
+        run: npm install --no-audit --no-fund
+      - name: Testar chaves estrangeiras entre organizacoes
+        working-directory: backend
+        run: node --test test/relationships.test.js
+  recovery-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: elo_ci
+          POSTGRES_PASSWORD: ficticia_apenas_ci
+          POSTGRES_DB: elo360_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U elo_ci -d elo360_ci"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      CI_ELO_DB: ephemeral
+      DATABASE_URL: postgresql://elo_ci:ficticia_apenas_ci@127.0.0.1:5432/elo360_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependencias no ambiente descartavel
+        working-directory: backend
+        run: npm install --no-audit --no-fund
+      - name: Testar codigos de recuperacao com uso unico e isolamento
+        working-directory: backend
+        run: node --test test/recovery-db.test.js
+  mfa-flow-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: elo_ci
+          POSTGRES_PASSWORD: ficticia_apenas_ci
+          POSTGRES_DB: elo360_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U elo_ci -d elo360_ci"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      CI_ELO_DB: ephemeral
+      DATABASE_URL: postgresql://elo_ci:ficticia_apenas_ci@127.0.0.1:5432/elo360_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependencias somente no ambiente descartavel
+        working-directory: backend
+        run: npm install --no-audit --no-fund
+      - name: Testar senha seguida de MFA antes de liberar painel
+        working-directory: backend
+        run: node --test test/mfa-flow.test.js
+  db-readiness-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: elo_ci
+          POSTGRES_PASSWORD: ficticia_apenas_ci
+          POSTGRES_DB: elo360_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U elo_ci -d elo360_ci"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      CI_ELO_DB: ephemeral
+      DATABASE_URL: postgresql://elo_ci:ficticia_apenas_ci@127.0.0.1:5432/elo360_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependencias em PostgreSQL descartavel
+        working-directory: backend
+        run: npm install --no-audit --no-fund
+      - name: Conferir inventario de migracoes sem escrita
+        working-directory: backend
+        run: node --test test/db-readiness.test.js
+  initial-schema-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: elo_ci
+          POSTGRES_PASSWORD: ficticia_apenas_ci
+          POSTGRES_DB: elo360_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U elo_ci -d elo360_ci"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      CI_ELO_DB: ephemeral
+      DATABASE_URL: postgresql://elo_ci:ficticia_apenas_ci@127.0.0.1:5432/elo360_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependencias no banco de homologacao descartavel
+        working-directory: backend
+        run: npm install --no-audit --no-fund
+      - name: Testar migração inicial com autorização explícita
+        working-directory: backend
+        run: node --test test/initial-migration.test.js
+  bootstrap-admin-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: elo_ci
+          POSTGRES_PASSWORD: ficticia_apenas_ci
+          POSTGRES_DB: elo360_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U elo_ci -d elo360_ci"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      CI_ELO_DB: ephemeral
+      DATABASE_URL: postgresql://elo_ci:ficticia_apenas_ci@127.0.0.1:5432/elo360_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependencias no banco descartavel
+        working-directory: backend
+        run: npm install --no-audit --no-fund
+      - name: Testar criacao unica da administradora com MFA confirmado
+        working-directory: backend
+        run: node --test test/bootstrap-admin.test.js
+  financial-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: elo_ci
+          POSTGRES_PASSWORD: ficticia_apenas_ci
+          POSTGRES_DB: elo360_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U elo_ci -d elo360_ci"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      CI_ELO_DB: ephemeral
+      DATABASE_URL: postgresql://elo_ci:ficticia_apenas_ci@127.0.0.1:5432/elo360_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependencias para banco financeiro descartavel
+        working-directory: backend
+        run: npm install --no-audit --no-fund
+      - name: Testar contas, fundos e investimentos isolados
+        working-directory: backend
+        run: node --test test/financial-schema.test.js
