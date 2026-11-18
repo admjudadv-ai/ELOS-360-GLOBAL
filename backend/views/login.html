@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>Acesso seguro — ELO 360 GLOBAL</title>
+<style>
+*{box-sizing:border-box}body{font:16px/1.55 Arial,sans-serif;background:#eef3fa;color:#102849;margin:0}header{padding:28px 18px;background:linear-gradient(115deg,#061b3e,#0755aa);text-align:center;color:white}main{max-width:480px;margin:36px auto;padding:0 18px}section{padding:28px;background:white;border-radius:16px;box-shadow:0 12px 35px #061b3e18}h1{font-size:1.65rem;margin:0}h2{font-size:1.25rem;margin-top:0}label{display:block;font-weight:bold;margin:12px 0 5px}input{width:100%;padding:12px;border:1px solid #acbed7;border-radius:8px;font:inherit}button{width:100%;background:#0755aa;color:white;padding:13px;border:0;border-radius:9px;margin-top:20px;font-weight:bold;font-size:1rem;cursor:pointer}button:disabled{opacity:.5}.notice{background:#fff4db;border-left:4px solid #a76b10;padding:12px;margin:15px 0;border-radius:8px}#message{min-height:28px}footer{text-align:center;color:#5b6982;padding:20px}
+</style></head>
+<body><header><h1>ELO 360 GLOBAL</h1><p>Conexões que transformam vidas</p></header>
+<main><section><h2>Acesso administrativo seguro</h2>
+<p class="notice"><strong>Ambiente de homologação.</strong> Não utilize dados reais ou credenciais pessoais até a liberação de produção.</p>
+<form id="login-form" autocomplete="off">
+<label for="organizationId">Identificador da organização (UUID)</label><input id="organizationId" name="organizationId" required placeholder="00000000-0000-0000-0000-000000000000" spellcheck="false">
+<label for="email">E-mail de acesso</label><input id="email" name="email" type="email" required autocomplete="username">
+<label for="password">Senha</label><input id="password" name="password" type="password" required autocomplete="current-password">
+<button id="submit" type="submit">Entrar</button>
+</form>
+<form id="mfa-form" hidden autocomplete="off">
+ <label for="mfa-code">Código temporário do aplicativo autenticador</label>
+ <input id="mfa-code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" required autocomplete="one-time-code">
+ <button type="submit" id="mfa-submit">Confirmar segundo fator</button>
+</form><p id="message" role="status" aria-live="polite"></p>
+<p><small>Os dados são enviados apenas ao servidor da ELO, no mesmo domínio desta página. Nenhuma senha é gravada no navegador pelo aplicativo.</small></p>
+</section></main><footer>ELO 360 GLOBAL © 2026</footer><script src="/login.js" defer></script></body></html>

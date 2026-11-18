@@ -1,0 +1,64 @@
+name: ELOS 360 - validar e migrar banco isolado de homologacao
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Digite HOMOLOGACAO_ELOS360 para habilitar a migracao"
+        required: true
+        type: string
+      apply:
+        description: "Aplicar as 8 migracoes ao banco de homologacao? Desmarcado = somente preflight"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: elos360-migracoes-homologacao
+  cancel-in-progress: false
+
+jobs:
+  migracoes-homologacao:
+    runs-on: ubuntu-latest
+    environment: elos360-homologacao
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: ${{ secrets.ELOS360_STAGING_DATABASE_URL }}
+      ELO_DB_EXPECTED_NAME: elo360_auth_staging_db
+    steps:
+      - name: Recusar configuracoes inseguras
+        env:
+          ACK: ${{ inputs.confirmation }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$ACK" = "HOMOLOGACAO_ELOS360"
+          test -n "$DATABASE_URL"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependencias
+        working-directory: backend
+        run: npm install --no-audit --no-fund
+      - name: Conferir instalador e testes unitarios
+        working-directory: backend
+        run: |
+          node --check scripts/migrate-empty-db.js
+          node --check scripts/check-db-readiness.js
+          node --test test/security.test.js test/permissions.test.js test/mfa.test.js
+      - name: Verificar banco antes da migracao (somente leitura)
+        working-directory: backend
+        run: node scripts/check-db-readiness.js
+      - name: Aplicar oito migracoes somente em banco vazio de homologacao
+        if: ${{ inputs.apply }}
+        working-directory: backend
+        env:
+          ELO_DB_MIGRATION_ACK: EU_AUTORIZO_MIGRACAO_INICIAL_ELO360_BANCO_VAZIO
+        run: node scripts/migrate-empty-db.js
+      - name: Verificar resultado (somente leitura)
+        if: ${{ inputs.apply }}
+        working-directory: backend
+        run: node scripts/check-db-readiness.js

@@ -1,0 +1,42 @@
+name: ELOS 360 - teste completo das oito migracoes (CI descartavel)
+on:
+  pull_request:
+    paths:
+      - 'db/**'
+      - 'backend/scripts/migrate-empty-db.js'
+      - 'backend/test/initial-migration.test.js'
+      - '.github/workflows/validar-oito-migracoes-ci.yml'
+permissions:
+  contents: read
+jobs:
+  migracoes-ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: elo_ci
+          POSTGRES_PASSWORD: senha_ficticia_ci_descartavel
+          POSTGRES_DB: elo360_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U elo_ci -d elo360_ci"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      CI_ELO_DB: ephemeral
+      DATABASE_URL: postgresql://elo_ci:senha_ficticia_ci_descartavel@127.0.0.1:5432/elo360_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependencias para banco descartavel
+        working-directory: backend
+        run: npm install --no-audit --no-fund
+      - name: Testar oito migracoes, autorizacao e bloqueio de reexecucao
+        working-directory: backend
+        run: node --test test/initial-migration.test.js
