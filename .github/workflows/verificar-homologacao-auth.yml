@@ -1,0 +1,41 @@
+name: Validar homologacao ELOS 360 (sem deploy)
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'render.yaml'
+      - 'docs/HOMOLOGACAO-RENDER-AUTH.md'
+      - '.github/workflows/verificar-homologacao-auth.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verificar-homologacao:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verificar separacao da homologacao
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f render.yaml
+          grep -Eq 'name: elo360-auth-staging' render.yaml
+          grep -Eq 'rootDir: backend' render.yaml
+          grep -Eq 'autoDeployTrigger: off' render.yaml
+          grep -Eq 'healthCheckPath: /health' render.yaml
+          ! grep -Eq 'DATABASE_URL: *postgres|MFA_ENCRYPTION_KEY: *[0-9a-fA-F]{64}' render.yaml
+      - name: Instalar dependencias somente para teste
+        working-directory: backend
+        run: npm install --no-audit --no-fund
+      - name: Validar sintaxe do backend
+        working-directory: backend
+        run: npm run check
+      - name: Testes unitarios sem banco real
+        working-directory: backend
+        run: node --test test/security.test.js test/permissions.test.js test/mfa.test.js test/recovery.test.js test/connection-diagnostic.test.js
