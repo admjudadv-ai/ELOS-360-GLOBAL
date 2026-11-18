@@ -1,0 +1,56 @@
+name: ELOS 360 - migracao inicial homologacao
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmacao:
+        description: 'Digite MIGRAR_HOMOLOGACAO para autorizar banco isolado vazio'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: elo360-migracao-inicial-homologacao
+  cancel-in-progress: false
+
+jobs:
+  migrar:
+    if: ${{ inputs.confirmacao == 'MIGRAR_HOMOLOGACAO' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout da branch isolada de homologacao
+        uses: actions/checkout@v4
+        with:
+          ref: homologacao-auth-render-2026-11-16
+          persist-credentials: false
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependencias
+        working-directory: backend
+        run: npm install --omit=dev --no-audit --no-fund
+      - name: Verificar credencial de homologacao
+        env:
+          DATABASE_URL: ${{ secrets.ELO_STAGING_DATABASE_URL }}
+        shell: bash
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::Configure o secret ELO_STAGING_DATABASE_URL no GitHub Actions."
+            exit 1
+          fi
+      - name: Aplicar somente em banco de homologacao completamente vazio
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.ELO_STAGING_DATABASE_URL }}
+          ELO_DB_EXPECTED_NAME: elo360_auth_staging_db
+          ELO_DB_MIGRATION_ACK: EU_AUTORIZO_MIGRACAO_INICIAL_ELO360_BANCO_VAZIO
+        run: node scripts/migrate-empty-db.js
+      - name: Conferir oito migracoes
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.ELO_STAGING_DATABASE_URL }}
+        run: node scripts/check-db-readiness.js
