@@ -1,0 +1,22 @@
+name: Verificar backend
+on:
+  push:
+    branches: [estrutura-segura-dados-autenticacao]
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/verificar-backend.yml'
+permissions:
+  contents: read
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verificar sintaxe JavaScript
+        run: node --check backend/server.js
+      - name: Validar JSON
+        run: node -e "JSON.parse(require('node:fs').readFileSync('backend/package.json', 'utf8'))"

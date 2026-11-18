@@ -1,0 +1,23 @@
+# Ambiente e segredos
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+service-account*.json
+# Dados/exportações não versionáveis
+dados-reais/
+private-data/
+uploads/
+backups/
+*.sqlite
+*.db
+*.dump
+*.bak
+# Dependências
+node_modules/
+dist/
+build/
