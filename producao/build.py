@@ -21,6 +21,7 @@ def inject(html: str) -> str:
     html = html.replace('/_blob/51b9bbe658679e189b8c5bef7c530707', '/logo-circular.png')
     html = re.sub(r'(<head[^>]*>)', lambda m: m.group(1) + '\n' + SHIM, html, count=1)
     html = html.replace('sua conta Claude', 'sua conta Elos')
+    html = html.replace('href="index.html#', 'href="/sistema#')
     html = html.replace(
         'Banco de dados indisponível nesta visualização: os dados ficam só neste aparelho. Abra o sistema pelo link no claude.ai para gravar no banco.',
         'Servidor indisponível no momento: os dados ficam só neste aparelho até a conexão voltar.')
@@ -28,7 +29,7 @@ def inject(html: str) -> str:
 
 
 os.makedirs(os.path.join(dst, 'programas'), exist_ok=True)
-for rel in ['index.html', 'programas/futuro-sem-fronteiras.html', 'programas/futuro-sem-fronteiras-sistema.html']:
+for rel in ['index.html', 'site.html', 'programas/futuro-sem-fronteiras.html', 'programas/futuro-sem-fronteiras-sistema.html']:
     with open(os.path.join(src, rel), encoding='utf-8') as f:
         out = inject(f.read())
     with open(os.path.join(dst, rel), 'w', encoding='utf-8') as f:

@@ -343,7 +343,9 @@ app.post('/api/ai', async (req, res) => {
 app.use('/api', (req, res) => res.status(404).json({ error: 'não encontrado' }));
 
 /* sistema Elos */
-app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'], maxAge: '5m' }));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'site.html')));
+app.get('/sistema', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'], maxAge: '5m', index: false }));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 app.use((err, req, res, next) => {
