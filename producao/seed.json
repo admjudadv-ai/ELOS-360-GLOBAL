@@ -91,5 +91,195 @@
    "ts": 1795192700005,
    "txt": "Programa Futuro Sem Fronteiras integrado ao sistema Elos 360° Global com os 5 projetos globais"
   }
+ },
+ {
+  "col": "evt",
+  "id": "ev27-pdac",
+  "data": {
+   "nome": "PDAC 2027 — Convenção Mundial de Exploração Mineral e Mineração",
+   "tipo": "congresso",
+   "formato": "Presencial",
+   "pais": "🇨🇦 Canadá",
+   "cidade": "Toronto",
+   "ini": "2027-03-07",
+   "fim": "2027-03-10",
+   "area": "Mineração e exploração mineral",
+   "org": "",
+   "setor": "pnj",
+   "link": "https://www.pdac.ca/convention",
+   "desc": "",
+   "t": 1795199000000
+  }
+ },
+ {
+  "col": "evt",
+  "id": "ev27-indaba",
+  "data": {
+   "nome": "Mining Indaba 2027",
+   "tipo": "conferencia",
+   "formato": "Presencial",
+   "pais": "🇿🇦 África do Sul",
+   "cidade": "Cidade do Cabo",
+   "ini": "2027-02-08",
+   "fim": "2027-02-11",
+   "area": "Mineração em África, investimento e parcerias",
+   "org": "",
+   "setor": "net",
+   "link": "https://www.miningindaba.com/",
+   "desc": "",
+   "t": 1795199000000
+  }
+ },
+ {
+  "col": "evt",
+  "id": "ev27-expomin",
+  "data": {
+   "nome": "Expomin 2027",
+   "tipo": "feira",
+   "formato": "Presencial",
+   "pais": "🇨🇱 Chile",
+   "cidade": "Santiago",
+   "ini": "2027-04-20",
+   "fim": "2027-04-24",
+   "area": "Mineração, tecnologia e equipamentos",
+   "org": "",
+   "setor": "com",
+   "link": "https://www.expomin.cl/en/",
+   "desc": "",
+   "t": 1795199000000
+  }
+ },
+ {
+  "col": "evt",
+  "id": "ev27-whx",
+  "data": {
+   "nome": "World Health Expo (WHX) Dubai 2027",
+   "tipo": "feira",
+   "formato": "Presencial",
+   "pais": "🇦🇪 Emirados Árabes Unidos",
+   "cidade": "Dubai",
+   "ini": "2027-01-25",
+   "fim": "2027-01-28",
+   "area": "Saúde: equipamentos, farmácia, biotecnologia e saúde digital",
+   "org": "",
+   "setor": "com",
+   "link": "https://www.worldhealthexpo.com/events/healthcare/dubai/en",
+   "desc": "",
+   "t": 1795199000000
+  }
+ },
+ {
+  "col": "evt",
+  "id": "ev27-hospitalar",
+  "data": {
+   "nome": "Hospitalar 2027",
+   "tipo": "feira",
+   "formato": "Presencial",
+   "pais": "🇧🇷 Brasil",
+   "cidade": "São Paulo",
+   "ini": "2027-05-18",
+   "fim": "2027-05-21",
+   "area": "Saúde e serviços hospitalares",
+   "org": "",
+   "setor": "com",
+   "link": "https://hospitalar.com/en",
+   "desc": "",
+   "t": 1795199000000
+  }
+ },
+ {
+  "col": "evt",
+  "id": "ev27-asco",
+  "data": {
+   "nome": "ASCO Annual Meeting 2027",
+   "tipo": "simposio",
+   "formato": "Presencial",
+   "pais": "🇺🇸 Estados Unidos",
+   "cidade": "Chicago",
+   "ini": "2027-06-04",
+   "fim": "2027-06-08",
+   "area": "Oncologia clínica",
+   "org": "",
+   "setor": "net",
+   "link": "https://conferences.asco.org/am/attend",
+   "desc": "",
+   "t": 1795199000000
+  }
+ },
+ {
+  "col": "evt",
+  "id": "ev27-ada",
+  "data": {
+   "nome": "ADA Scientific Sessions 2027",
+   "tipo": "simposio",
+   "formato": "Presencial",
+   "pais": "🇺🇸 Estados Unidos",
+   "cidade": "Washington, D.C.",
+   "ini": "2027-06-18",
+   "fim": "2027-06-21",
+   "area": "Diabetes e endocrinologia",
+   "org": "",
+   "setor": "net",
+   "link": "https://professional.diabetes.org/scientific-sessions",
+   "desc": "",
+   "t": 1795199000000
+  }
+ },
+ {
+  "col": "evt",
+  "id": "ev27-esc",
+  "data": {
+   "nome": "ESC Congress 2027",
+   "tipo": "simposio",
+   "formato": "Híbrido",
+   "pais": "🇮🇹 Itália",
+   "cidade": "Milão",
+   "ini": "2027-08-27",
+   "fim": "2027-08-30",
+   "area": "Cardiologia",
+   "org": "",
+   "setor": "net",
+   "link": "https://www.escardio.org/events/congresses/esc-congress",
+   "desc": "",
+   "t": 1795199000000
+  }
+ },
+ {
+  "col": "evt",
+  "id": "ev27-escprev",
+  "data": {
+   "nome": "ESC Preventive Cardiology 2027",
+   "tipo": "simposio",
+   "formato": "Presencial",
+   "pais": "🇵🇹 Portugal",
+   "cidade": "Lisboa",
+   "ini": "2027-04-15",
+   "fim": "2027-04-17",
+   "area": "Cardiologia preventiva e saúde cardiometabólica",
+   "org": "",
+   "setor": "edu",
+   "link": "https://www.escardio.org/events/congresses/esc-preventive-cardiology/",
+   "desc": "",
+   "t": 1795199000000
+  }
+ },
+ {
+  "col": "evt",
+  "id": "ev27-expobelgrado",
+  "data": {
+   "nome": "Expo 2027 Belgrado — Exposição Internacional Especializada",
+   "tipo": "exposicao",
+   "formato": "Presencial",
+   "pais": "🇷🇸 Sérvia",
+   "cidade": "Belgrado",
+   "ini": "2027-05-15",
+   "fim": "2027-08-15",
+   "area": "Esporte, música, cultura e inovação",
+   "org": "",
+   "setor": "pnj",
+   "link": "https://expobelgrade2027.org/en/about/expo-2027",
+   "desc": "",
+   "t": 1795199000000
+  }
  }
 ]
