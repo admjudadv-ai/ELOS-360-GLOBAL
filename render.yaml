@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: elos360-global
+    runtime: node
+    region: virginia
+    plan: starter
+    branch: producao-elos360
+    rootDir: producao
+    buildCommand: npm install --omit=dev
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: OWNER_EMAILS
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false

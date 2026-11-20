@@ -1,0 +1,95 @@
+[
+ {
+  "col": "projetos",
+  "id": "africa-continental",
+  "data": {
+   "fase": "Proposta",
+   "financiador": "",
+   "marco": "Selecionar os primeiros países africanos parceiros",
+   "nome": "Programa Continental África — Jovens e Mulheres Africanas",
+   "notas": "Juventude africana, mulheres da dona de casa à mineradora, infância protegida e minerais para o desenvolvimento.",
+   "orcamento": null,
+   "desembolsado": null,
+   "pais": "GL",
+   "programa": "Programa Continental África",
+   "createdAt": 1795192700004,
+   "updatedAt": 1795192700004
+  }
+ },
+ {
+  "col": "projetos",
+  "id": "direitos-infancia",
+  "data": {
+   "fase": "Proposta",
+   "financiador": "",
+   "marco": "Diagnóstico jurídico e social nos primeiros países parceiros",
+   "nome": "Direitos da Criança e do Adolescente",
+   "notas": "Proteção, escola protegida, combate ao trabalho infantil, canais seguros de denúncia e rendimento para as famílias.",
+   "orcamento": null,
+   "desembolsado": null,
+   "pais": "GL",
+   "programa": "Direitos da Infância",
+   "createdAt": 1795192700000,
+   "updatedAt": 1795192700000
+  }
+ },
+ {
+  "col": "projetos",
+  "id": "escola-trabalho",
+  "data": {
+   "fase": "Proposta",
+   "financiador": "",
+   "marco": "Grupo de trabalho por país e piloto 2027 (1.000 jovens)",
+   "nome": "Da Escola ao Trabalho — Aprendizagem e Primeiro Emprego",
+   "notas": "Modelo 50/50 com tutor certificado; 3 modalidades; metas indicativas por país: 2027 1.000, 2028 5.000, 2029 15.000, 2030 30.000/ano.",
+   "orcamento": null,
+   "desembolsado": null,
+   "pais": "GL",
+   "programa": "Da Escola ao Trabalho",
+   "createdAt": 1795192700001,
+   "updatedAt": 1795192700001
+  }
+ },
+ {
+  "col": "projetos",
+  "id": "mineracao-transforma",
+  "data": {
+   "fase": "Proposta",
+   "financiador": "Financiamento misto (equity + grant + dívida)",
+   "marco": "Fase 1 Fundação: diagnóstico, linha de base e estruturação legal (US$ 250 mil)",
+   "nome": "Mineração que Transforma — Piloto Gemas & Comunidades",
+   "notas": "24 meses: Fundação US$ 250 mil; Implementação US$ 850 mil; Consolidação US$ 400 mil. Valores indicativos por país.",
+   "orcamento": 1500000,
+   "desembolsado": 0,
+   "pais": "GL",
+   "programa": "Mineração que Transforma",
+   "createdAt": 1795192700003,
+   "updatedAt": 1795192700003
+  }
+ },
+ {
+  "col": "projetos",
+  "id": "mulheres-mineracao",
+  "data": {
+   "fase": "Proposta",
+   "financiador": "",
+   "marco": "Diagnóstico e mapa de stakeholders (0–90 dias)",
+   "nome": "Mulheres na Mineração 2030",
+   "notas": "Connect, Academia, Business Bridge, Mentoria & Liderança, Opportunity Forum e Exchange. Fee de setup + mensalidade + success fee.",
+   "orcamento": null,
+   "desembolsado": null,
+   "pais": "GL",
+   "programa": "Mulheres na Mineração 2030",
+   "createdAt": 1795192700002,
+   "updatedAt": 1795192700002
+  }
+ },
+ {
+  "col": "atividade",
+  "id": "inicio",
+  "data": {
+   "ts": 1795192700005,
+   "txt": "Programa Futuro Sem Fronteiras integrado ao sistema Elos 360° Global com os 5 projetos globais"
+  }
+ }
+]

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<script src="/elos-shim.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elos 360° Global · Futuro Sem Fronteiras — Sistema Integrado Global</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0b1630;--navy2:#13244a;--ink:#1b2333;--muted:#5d6678;--gold:#d6a43a;--gold2:#f1c869;--terra:#c8553d;--sun:#e8833a;--paper:#f6f3ec;--card:#fff;--line:#e6dfd2;--green:#2f7d5b;--red:#b23a2e}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased;line-height:1.5}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;letter-spacing:-.01em;line-height:1.15}
+button,input,select,textarea{font:inherit;color:inherit}
+.app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+aside{background:linear-gradient(180deg,var(--navy),#0e1d3d);color:#c9d2e6;padding:22px 14px;position:sticky;top:0;height:100vh;overflow:auto}
+.logo{display:flex;gap:10px;align-items:center;color:#fff;font-weight:800;font-size:.82rem;letter-spacing:.06em;padding:0 8px 18px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:14px}
+.logo small{display:block;font-weight:500;color:var(--gold2);letter-spacing:.12em;font-size:.62rem}
+.nav{display:grid;gap:3px}
+.nav button{display:flex;align-items:center;gap:10px;background:none;border:0;padding:10px 12px;border-radius:10px;cursor:pointer;text-align:left;font-size:.9rem;font-weight:500;color:#c9d2e6}
+.nav button:hover{background:rgba(255,255,255,.06)}
+.nav button.on{background:linear-gradient(90deg,rgba(241,200,105,.22),rgba(241,200,105,.04));color:#fff}
+.nav button .ic{width:20px;text-align:center}
+.nav .cnt{margin-left:auto;font-size:.72rem;background:rgba(255,255,255,.1);padding:1px 8px;border-radius:999px}
+.navsec{font-size:.64rem;letter-spacing:.16em;text-transform:uppercase;color:#6f7d9c;padding:14px 12px 4px}
+.who{margin-top:18px;padding:12px;border-radius:12px;background:rgba(255,255,255,.05);font-size:.78rem}
+.who b{color:#fff;display:block}
+.status{display:flex;align-items:center;gap:6px;margin-top:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:#888}
+.dot.ok{background:#3ecf8e;box-shadow:0 0 0 3px rgba(62,207,142,.2)}
+.dot.warn{background:var(--gold)}
+main{padding:26px 30px 90px;min-width:0}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.top h1{font-size:clamp(1.6rem,3vw,2.3rem);color:var(--navy)}
+.top p{color:var(--muted);font-size:.92rem}
+.eyebrow{font-size:.7rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;border:0;cursor:pointer;font-weight:700;font-size:.86rem;text-decoration:none}
+.btn-gold{background:linear-gradient(135deg,var(--gold2),var(--gold));color:var(--navy)}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-line{background:#fff;border:1.5px solid var(--line);color:var(--ink)}
+.btn-danger{background:#fff;border:1.5px solid #e9c3bd;color:var(--red)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.banner{padding:12px 16px;border-radius:12px;margin-bottom:18px;font-size:.88rem;display:none}
+.banner.show{display:block}
+.banner.warn{background:#fff5df;border:1px solid #f0d79a}
+.banner.err{background:#fdecea;border:1px solid #f1c0b9}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;position:relative;overflow:hidden}
+.kpi .l{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.kpi .v{font-family:Fraunces,serif;font-size:2rem;font-weight:800;color:var(--navy);margin-top:4px}
+.kpi .s{font-size:.78rem;color:var(--muted)}
+.kpi::after{content:"";position:absolute;right:-30px;top:-30px;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,rgba(214,164,58,.18),transparent 70%)}
+.kpi.dark{background:linear-gradient(150deg,var(--navy),var(--navy2));border:0}
+.kpi.dark .v{color:var(--gold2)}.kpi.dark .l,.kpi.dark .s{color:#b9c3da}
+.grid2{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;margin-top:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;min-width:0}
+.card h3{font-size:1.1rem;color:var(--navy);margin-bottom:12px}
+.bars{display:grid;gap:10px}
+.bar{display:grid;grid-template-columns:120px 1fr 44px;gap:10px;align-items:center;font-size:.84rem}
+.bar .t{height:12px;background:#efe9dd;border-radius:999px;overflow:hidden}
+.bar .f{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--gold),var(--sun));transition:width .8s}
+.bar .f.af{background:linear-gradient(90deg,var(--terra),var(--sun))}
+.bar b{text-align:right;color:var(--navy)}
+.funnel{display:grid;gap:6px}
+.fs{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:10px;color:#fff;font-size:.84rem;font-weight:600;margin:0 auto;transition:width .8s}
+.feed{display:grid;gap:10px;max-height:320px;overflow:auto}
+.feed div{font-size:.84rem;padding-left:14px;border-left:2px solid var(--gold)}
+.feed small{color:var(--muted);display:block;font-size:.74rem}
+.africa{background:linear-gradient(150deg,#3a130a,#8a3a18);color:#fff;border:0}
+.africa h3{color:var(--gold2)}
+.africa .big{font-family:Fraunces,serif;font-size:2.4rem;font-weight:800}
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty .e{font-size:2.2rem}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.toolbar input,.toolbar select{padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;font-size:.88rem}
+.toolbar input{flex:1;min-width:180px}
+.tbl{width:100%;border-collapse:collapse;font-size:.86rem;background:#fff;border-radius:14px;overflow:hidden}
+.tblw{overflow:auto;border:1px solid var(--line);border-radius:14px}
+.tbl th{text-align:left;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:#faf8f3;padding:11px 12px;white-space:nowrap;border-bottom:1px solid var(--line)}
+.tbl td{padding:11px 12px;border-bottom:1px solid #f0ebe1;vertical-align:top}
+.tbl tr:hover td{background:#fcfaf5;cursor:pointer}
+.tag{display:inline-block;padding:3px 9px;border-radius:999px;font-size:.72rem;font-weight:700;white-space:nowrap}
+.t0{background:#eef1f7;color:#3b4a6b}.t1{background:#fff2d6;color:#8a5a00}.t2{background:#e3f3ea;color:#1f6b47}.t3{background:#fde6df;color:#9b3a24}.t4{background:#ece4f7;color:#5a3480}
+.seal{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:.8rem}
+.seal i{width:14px;height:14px;border-radius:50%;display:inline-block}
+.modal{position:fixed;inset:0;background:rgba(11,22,48,.55);display:none;align-items:flex-start;justify-content:center;z-index:100;overflow:auto;padding:30px 14px}
+.modal.show{display:flex}
+.mbox{background:#fff;border-radius:18px;width:100%;max-width:620px;padding:24px;box-shadow:0 30px 80px -20px rgba(0,0,0,.4)}
+.mbox h2{color:var(--navy);font-size:1.4rem;margin-bottom:16px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fgrid label{display:grid;gap:5px;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.fgrid .full{grid-column:1/-1}
+.fgrid input,.fgrid select,.fgrid textarea{padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:#faf8f3;font-size:.92rem;text-transform:none;letter-spacing:0;font-weight:400;color:var(--ink)}
+.fgrid .chk{display:flex;gap:8px;align-items:flex-start;text-transform:none;letter-spacing:0;font-weight:500;font-size:.86rem;color:var(--ink)}
+.mact{display:flex;justify-content:space-between;gap:10px;margin-top:20px;flex-wrap:wrap}
+.hint{font-size:.78rem;color:var(--muted);margin-top:4px}
+.crit{display:grid;grid-template-columns:1fr 150px 34px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #f0ebe1;font-size:.86rem}
+.crit input[type=range]{width:100%;accent-color:var(--gold)}
+.score{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.ring{width:120px;height:120px}
+.cmp{display:grid;gap:8px;margin-top:6px}
+.cmp .row{display:grid;grid-template-columns:1fr 1fr 40px;gap:10px;align-items:center;font-size:.8rem}
+.cmp .t{height:9px;background:#efe9dd;border-radius:999px;position:relative;overflow:hidden}
+.cmp .f{height:100%;background:var(--navy);border-radius:999px}
+.ai{display:grid;grid-template-columns:320px 1fr;gap:16px}
+.aiout{white-space:pre-wrap;font-size:.92rem;line-height:1.6;min-height:240px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:7px 12px;border-radius:999px;border:1.5px solid var(--line);background:#fff;cursor:pointer;font-size:.8rem;font-weight:600}
+.chip:hover{border-color:var(--gold)}
+.mobnav{display:none}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--navy);color:#fff;padding:12px 20px;border-radius:12px;font-size:.88rem;transition:transform .3s;z-index:200}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.cards{display:none}
+@media(max-width:1000px){.kpis{grid-template-columns:1fr 1fr}.grid2,.grid3,.ai{grid-template-columns:1fr}}
+@media(max-width:820px){
+ .app{grid-template-columns:1fr}
+ aside{display:none}
+ main{padding:16px 14px 100px}
+ .mobhead{display:flex!important}
+ .mobnav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--navy);overflow-x:auto;gap:2px;padding:8px 6px calc(8px + env(safe-area-inset-bottom));z-index:60}
+ .mobnav button{flex:none;background:none;border:0;color:#b9c3da;font-size:.68rem;display:grid;justify-items:center;gap:2px;padding:4px 10px;border-radius:10px;cursor:pointer}
+ .mobnav button.on{background:rgba(241,200,105,.18);color:#fff}
+ .mobnav .ic{font-size:1.15rem}
+ .fgrid{grid-template-columns:1fr}
+ .bar{grid-template-columns:90px 1fr 36px}
+ .tblw{display:none}.cards{display:grid;gap:10px}
+ .crit{grid-template-columns:1fr 100px 28px}
+}
+.mobhead{display:none;align-items:center;justify-content:space-between;margin:-16px -14px 16px;padding:14px;background:var(--navy);color:#fff;font-weight:800;font-size:.8rem;letter-spacing:.06em}
+.mc{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;cursor:pointer}
+.mc b{color:var(--navy)}
+.mc .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;font-size:.78rem;color:var(--muted)}
+</style>
+</head>
+<body><div id="elosbar" style="position:sticky;top:0;z-index:9999;display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px 14px;padding-top:calc(8px + env(safe-area-inset-top,0px));background:#0b1f3a;color:#fff;font:600 13px/1.3 system-ui,sans-serif"><a href="../index.html" style="color:#fff;text-decoration:none">← <b>ELOS <span style="color:#e8b84a">360°</span> GLOBAL</b> · Sistema Integrado</a><a href="../index.html#programas" style="color:#e8b84a;text-decoration:none">Programas</a></div>
+<div class="app">
+  <aside>
+    <div class="logo">
+      <svg width="34" height="34" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="none" stroke="#f1c869" stroke-width="2.5"/><ellipse cx="20" cy="20" rx="8" ry="18" fill="none" stroke="#f1c869" stroke-width="1.6"/><path d="M3 15h34M3 25h34" stroke="#f1c869" stroke-width="1.6"/><circle cx="20" cy="20" r="4" fill="#e8833a"/></svg>
+      <div>FUTURO SEM FRONTEIRAS<small>SISTEMA INTEGRADO GLOBAL</small></div>
+    </div>
+    <div class="nav" id="nav"></div>
+    <div class="who"><b id="whoName">Conectando…</b><span id="whoRole">—</span><div class="status"><span class="dot" id="dbDot"></span><span id="dbTxt">Banco de dados</span></div></div>
+  </aside>
+  <main>
+    <div class="mobhead"><span>FUTURO SEM FRONTEIRAS</span><span class="status"><span class="dot" id="dbDot2"></span><span id="dbTxt2" style="font-weight:500;letter-spacing:0"></span></span></div>
+    <div class="banner warn" id="banner"></div>
+    <div id="view"></div>
+  </main>
+</div>
+<nav class="mobnav" id="mobnav"></nav>
+
+<div class="modal" id="modal"><div class="mbox" id="mbox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const COUNTRIES=[["AF","Afeganistão","Ásia"],["AL","Albânia","Europa"],["AD","Andorra","Europa"],["AO","Angola","África"],["AG","Antígua e Barbuda","Américas"],["AR","Argentina","Américas"],["DZ","Argélia","África"],["AM","Armênia","Europa"],["SA","Arábia Saudita","Oriente Médio"],["AU","Austrália","Oceania"],["AZ","Azerbaijão","Europa"],["BS","Bahamas","Américas"],["BD","Bangladesh","Ásia"],["BB","Barbados","Américas"],["BH","Barein","Oriente Médio"],["BZ","Belize","Américas"],["BJ","Benin","África"],["BY","Bielorrússia","Europa"],["BO","Bolívia","Américas"],["BW","Botsuana","África"],["BR","Brasil","Américas"],["BN","Brunei","Ásia"],["BG","Bulgária","Europa"],["BF","Burquina Faso","África"],["BI","Burundi","África"],["BT","Butão","Ásia"],["BE","Bélgica","Europa"],["BA","Bósnia e Herzegovina","Europa"],["CV","Cabo Verde","África"],["CM","Camarões","África"],["KH","Camboja","Ásia"],["CA","Canadá","Américas"],["QA","Catar","Oriente Médio"],["KZ","Cazaquistão","Ásia"],["TD","Chade","África"],["CL","Chile","Américas"],["CN","China","Ásia"],["CY","Chipre","Oriente Médio"],["VA","Cidade do Vaticano","Europa"],["CO","Colômbia","Américas"],["KM","Comores","África"],["CD","Congo - Kinshasa","África"],["KP","Coreia do Norte","Ásia"],["KR","Coreia do Sul","Ásia"],["CR","Costa Rica","Américas"],["CI","Costa do Marfim","África"],["HR","Croácia","Europa"],["CU","Cuba","Américas"],["DK","Dinamarca","Europa"],["DJ","Djibuti","África"],["DM","Dominica","Américas"],["EG","Egito","África"],["SV","El Salvador","Américas"],["AE","Emirados Árabes Unidos","Oriente Médio"],["EC","Equador","Américas"],["ER","Eritreia","África"],["SK","Eslováquia","Europa"],["SI","Eslovênia","Europa"],["ES","Espanha","Europa"],["SZ","Essuatíni","África"],["US","Estados Unidos","Américas"],["EE","Estônia","Europa"],["ET","Etiópia","África"],["FJ","Fiji","Oceania"],["PH","Filipinas","Ásia"],["FI","Finlândia","Europa"],["FR","França","Europa"],["GA","Gabão","África"],["GH","Gana","África"],["GE","Geórgia","Europa"],["GD","Granada","Américas"],["GR","Grécia","Europa"],["GT","Guatemala","Américas"],["GY","Guiana","Américas"],["GN","Guiné","África"],["GQ","Guiné Equatorial","África"],["GW","Guiné-Bissau","África"],["GM","Gâmbia","África"],["HT","Haiti","Américas"],["HN","Honduras","Américas"],["HU","Hungria","Europa"],["MH","Ilhas Marshall","Oceania"],["SB","Ilhas Salomão","Oceania"],["ID","Indonésia","Ásia"],["IQ","Iraque","Oriente Médio"],["IE","Irlanda","Europa"],["IR","Irã","Oriente Médio"],["IS","Islândia","Europa"],["IL","Israel","Oriente Médio"],["IT","Itália","Europa"],["YE","Iêmen","Oriente Médio"],["JM","Jamaica","Américas"],["JP","Japão","Ásia"],["JO","Jordânia","Oriente Médio"],["XK","Kosovo","Europa"],["KW","Kuwait","Oriente Médio"],["LA","Laos","Ásia"],["LS","Lesoto","África"],["LV","Letônia","Europa"],["LR","Libéria","África"],["LI","Liechtenstein","Europa"],["LT","Lituânia","Europa"],["LU","Luxemburgo","Europa"],["LB","Líbano","Oriente Médio"],["LY","Líbia","África"],["MK","Macedônia do Norte","Europa"],["MG","Madagascar","África"],["MW","Malaui","África"],["MV","Maldivas","Ásia"],["ML","Mali","África"],["MT","Malta","Europa"],["MY","Malásia","Ásia"],["MA","Marrocos","África"],["MR","Mauritânia","África"],["MU","Maurício","África"],["MM","Mianmar (Birmânia)","Ásia"],["FM","Micronésia","Oceania"],["MD","Moldávia","Europa"],["MN","Mongólia","Ásia"],["ME","Montenegro","Europa"],["MZ","Moçambique","África"],["MX","México","Américas"],["MC","Mônaco","Europa"],["NA","Namíbia","África"],["NR","Nauru","Oceania"],["NP","Nepal","Ásia"],["NI","Nicarágua","Américas"],["NG","Nigéria","África"],["NO","Noruega","Europa"],["NZ","Nova Zelândia","Oceania"],["NE","Níger","África"],["OM","Omã","Oriente Médio"],["PW","Palau","Oceania"],["PA","Panamá","Américas"],["PG","Papua-Nova Guiné","Oceania"],["PK","Paquistão","Ásia"],["PY","Paraguai","Américas"],["NL","Países Baixos","Europa"],["PE","Peru","Américas"],["PL","Polônia","Europa"],["PT","Portugal","Europa"],["KG","Quirguistão","Ásia"],["KI","Quiribati","Oceania"],["KE","Quênia","África"],["GB","Reino Unido","Europa"],["CF","República Centro-Africana","África"],["DO","República Dominicana","Américas"],["CG","República do Congo","África"],["RO","Romênia","Europa"],["RW","Ruanda","África"],["RU","Rússia","Europa"],["WS","Samoa","Oceania"],["SM","San Marino","Europa"],["LC","Santa Lúcia","Américas"],["SC","Seicheles","África"],["SN","Senegal","África"],["SL","Serra Leoa","África"],["SG","Singapura","Ásia"],["SO","Somália","África"],["LK","Sri Lanka","Ásia"],["SD","Sudão","África"],["SS","Sudão do Sul","África"],["SR","Suriname","Américas"],["SE","Suécia","Europa"],["CH","Suíça","Europa"],["KN","São Cristóvão e Névis","Américas"],["ST","São Tomé e Príncipe","África"],["VC","São Vicente e Granadinas","Américas"],["RS","Sérvia","Europa"],["SY","Síria","Oriente Médio"],["TJ","Tadjiquistão","Ásia"],["TH","Tailândia","Ásia"],["TZ","Tanzânia","África"],["CZ","Tchéquia","Europa"],["PS","Territórios palestinos","Oriente Médio"],["TL","Timor-Leste","Ásia"],["TG","Togo","África"],["TO","Tonga","Oceania"],["TT","Trinidad e Tobago","Américas"],["TN","Tunísia","África"],["TM","Turcomenistão","Ásia"],["TR","Turquia","Oriente Médio"],["TV","Tuvalu","Oceania"],["UA","Ucrânia","Europa"],["UG","Uganda","África"],["UY","Uruguai","Américas"],["UZ","Uzbequistão","Ásia"],["VU","Vanuatu","Oceania"],["VE","Venezuela","Américas"],["VN","Vietnã","Ásia"],["ZW","Zimbábue","África"],["ZM","Zâmbia","África"],["ZA","África do Sul","África"],["AT","Áustria","Europa"],["IN","Índia","Ásia"]];
+const CMAP=Object.fromEntries(COUNTRIES.map(c=>[c[0],c]));
+const REGIONS=['África','Américas','Ásia','Europa','Oriente Médio','Oceania'];
+const PROGRAMS=['Direitos da Infância','Da Escola ao Trabalho','Mulheres na Mineração 2030','Mineração que Transforma','Rede Global de Oportunidades','Programa Continental África'];
+const STAGES_P=['Prospecção','Contato','Reunião','Proposta','Negociação','Contrato assinado'];
+const STAGES_C=['Prospecção','Articulação','Acordo','Piloto','Expansão','Escala nacional','Consolidação'];
+const SEAL_COL={Platina:'#4d6a8c',Ouro:'#d6a43a',Prata:'#8f9aa8',Bronze:'#a8642c','Em adesão':'#cfc6b5'};
+const CRITERIA=[
+ 'Marco legal de proteção da criança e combate ao trabalho infantil',
+ 'Escolaridade obrigatória e permanência escolar',
+ 'Aprendizagem dual (escola + empresa) estruturada',
+ 'Certificação nacional de competências',
+ 'Tutoria certificada dentro das empresas',
+ 'Participação das empresas como co-formadoras',
+ 'Inclusão de mulheres, zonas rurais e pessoas com deficiência',
+ 'Infraestrutura digital e Carteira Digital de Competências',
+ 'Transição para o emprego após o programa',
+ 'Governança, dados abertos e transparência'];
+
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=v=>Number(v)||0;
+const usd=v=>'US$ '+num(v).toLocaleString('pt-BR',{maximumFractionDigits:0});
+const fmt=v=>num(v).toLocaleString('pt-BR');
+const cname=iso=>iso==='GL'?'Global (todos os países)':(CMAP[iso]?.[1]||iso||'—');
+const creg=iso=>CMAP[iso]?.[2]||(iso==='GL'?'Global':'—');
+const countryOpts=(withGlobal)=>(withGlobal?'<option value="GL">🌍 Global (todos os países)</option>':'')+REGIONS.map(r=>`<optgroup label="${r}">${COUNTRIES.filter(c=>c[2]===r).map(c=>`<option value="${c[0]}">${esc(c[1])}</option>`).join('')}</optgroup>`).join('');
+
+function seal(e){const a=num(e.aprendizes),t=num(e.tutores),c=num(e.contratacoes);
+ if(a>=20&&t>=5&&c>=10)return'Platina';if(a>=5&&t>=2&&c>=1)return'Ouro';if(a>=1&&t>=1)return'Prata';if(a>=1)return'Bronze';return'Em adesão';}
+
+const MODULES={
+ parceiros:{title:'Parceiros & Investidores',icon:'🤝',sing:'parceiro',desc:'CRM global de governos, empresas, investidores e organismos.',
+  fields:[
+   {k:'nome',l:'Nome / instituição',req:1,full:1},
+   {k:'tipo',l:'Tipo',type:'select',opts:['Governo','Empresa','Investidor','Organismo internacional','Mineradora','Instituição de ensino','Sociedade civil']},
+   {k:'pais',l:'País',type:'country',global:1},
+   {k:'programa',l:'Programa de interesse',type:'select',opts:PROGRAMS},
+   {k:'estagio',l:'Estágio',type:'select',opts:STAGES_P},
+   {k:'valor',l:'Valor potencial (US$)',type:'number'},
+   {k:'contato',l:'Pessoa de contato'},
+   {k:'email',l:'E-mail',type:'email'},
+   {k:'proximaData',l:'Data da próxima ação',type:'date'},
+   {k:'proximo',l:'Próximo passo',full:1},
+   {k:'notas',l:'Observações',type:'textarea',full:1}],
+  cols:[['nome','Nome'],['tipo','Tipo'],['pais','País'],['estagio','Estágio'],['valor','Valor'],['proximo','Próximo passo']]},
+ jovens:{title:'Jovens · Carteira Digital',icon:'🎓',sing:'jovem',desc:'Carteira Digital Global de Competências de cada participante.',
+  fields:[
+   {k:'nome',l:'Nome completo',req:1,full:1},
+   {k:'idade',l:'Idade',type:'number'},
+   {k:'pais',l:'País',type:'country'},
+   {k:'programa',l:'Programa',type:'select',opts:PROGRAMS},
+   {k:'modalidade',l:'Modalidade',type:'select',opts:['Aprendizagem Juvenil','Primeira Experiência Profissional','Transição para o Emprego']},
+   {k:'setor',l:'Setor',type:'select',opts:['Tecnologia digital','Energia','Agricultura','Construção','Indústria','Turismo','Logística','Serviços financeiros','Economia verde','Mineração']},
+   {k:'status',l:'Situação',type:'select',opts:['Inscrito','Em formação','Em prática','Certificado','Empregado']},
+   {k:'horasFormacao',l:'Horas de formação',type:'number'},
+   {k:'horasPratica',l:'Horas de prática',type:'number'},
+   {k:'tutor',l:'Tutor responsável'},
+   {k:'empresa',l:'Empresa de prática'},
+   {k:'responsavel',l:'Responsável legal (se menor de 18)',full:1},
+   {k:'consentimento',l:'Autorização do responsável legal e consentimento para tratamento de dados registrados',type:'check',full:1},
+   {k:'competencias',l:'Competências e certificados',type:'textarea',full:1}],
+  cols:[['nome','Nome'],['pais','País'],['programa','Programa'],['status','Situação'],['horas','Horas'],['tutor','Tutor']]},
+ empresas:{title:'Empresas & Selo Global',icon:'🏢',sing:'empresa',desc:'Empresas co-formadoras. O selo é calculado automaticamente.',
+  fields:[
+   {k:'nome',l:'Empresa',req:1,full:1},
+   {k:'pais',l:'País',type:'country'},
+   {k:'setor',l:'Setor'},
+   {k:'aprendizes',l:'Aprendizes recebidos',type:'number'},
+   {k:'tutores',l:'Tutores certificados',type:'number'},
+   {k:'contratacoes',l:'Jovens contratados',type:'number'},
+   {k:'contato',l:'Contato'},
+   {k:'notas',l:'Observações',type:'textarea',full:1}],
+  cols:[['nome','Empresa'],['pais','País'],['setor','Setor'],['aprendizes','Aprendizes'],['contratacoes','Contratados'],['selo','Selo']]},
+ vagas:{title:'Oportunidades',icon:'💼',sing:'oportunidade',desc:'Vagas de aprendizagem e primeiro emprego em todo o mundo.',
+  fields:[
+   {k:'titulo',l:'Título da vaga',req:1,full:1},
+   {k:'empresa',l:'Empresa'},
+   {k:'pais',l:'País',type:'country'},
+   {k:'setor',l:'Setor'},
+   {k:'modalidade',l:'Modalidade',type:'select',opts:['Aprendizagem Juvenil','Primeira Experiência Profissional','Transição para o Emprego']},
+   {k:'qtd',l:'Número de vagas',type:'number'},
+   {k:'status',l:'Situação',type:'select',opts:['Aberta','Em seleção','Preenchida']},
+   {k:'descricao',l:'Descrição',type:'textarea',full:1}],
+  cols:[['titulo','Vaga'],['empresa','Empresa'],['pais','País'],['qtd','Vagas'],['status','Situação']]},
+ projetos:{title:'Projetos & Investimento',icon:'📈',sing:'projeto',desc:'Projetos por país, orçamento, desembolso por marcos.',
+  fields:[
+   {k:'nome',l:'Nome do projeto',req:1,full:1},
+   {k:'pais',l:'País',type:'country',global:1},
+   {k:'programa',l:'Programa',type:'select',opts:PROGRAMS},
+   {k:'fase',l:'Fase',type:'select',opts:['Proposta','Estruturação','Piloto','Expansão','Escala nacional','Consolidação']},
+   {k:'orcamento',l:'Orçamento (US$)',type:'number'},
+   {k:'desembolsado',l:'Desembolsado (US$)',type:'number'},
+   {k:'financiador',l:'Financiador / parceiro'},
+   {k:'marco',l:'Próximo marco'},
+   {k:'notas',l:'Escopo',type:'textarea',full:1}],
+  cols:[['nome','Projeto'],['pais','País'],['fase','Fase'],['orcamento','Orçamento'],['exec','Execução']]},
+ paises:{title:'Países',icon:'🌍',sing:'país',desc:'Pipeline de implantação em todos os países.',idField:'pais',
+  fields:[
+   {k:'pais',l:'País',type:'country',req:1},
+   {k:'estagio',l:'Estágio',type:'select',opts:STAGES_C},
+   {k:'responsavel',l:'Responsável'},
+   {k:'parceiroLocal',l:'Parceiro local principal'},
+   {k:'programas',l:'Programas ativos (separe por vírgula)',full:1},
+   {k:'notas',l:'Observações',type:'textarea',full:1}],
+  cols:[['pais','País'],['regiao','Região'],['estagio','Estágio'],['responsavel','Responsável'],['indice','Índice']]}
+};
+const ORDER=['painel','paises','parceiros','projetos','jovens','empresas','vagas','indice','ia'];
+const META={painel:{title:'Painel Global',icon:'◉'},indice:{title:'Índice de Excelência',icon:'🏆'},ia:{title:'Assistente IA',icon:'✦'}};
+const COLS=[...Object.keys(MODULES),'avaliacoes','atividade'];
+
+let DB=null,USER=null,CANWRITE=true,ME='';
+const S=Object.fromEntries(COLS.map(c=>[c,[]]));
+let cur='painel',filt={q:'',reg:''};
+
+/* ---------- NAV ---------- */
+function navHTML(mob){return ORDER.map(k=>{const m=MODULES[k]||META[k];const n=MODULES[k]?S[k].length:'';
+ return mob?`<button data-v="${k}" class="${cur===k?'on':''}"><span class="ic">${m.icon}</span>${esc(m.title.split(' ')[0])}</button>`
+ :(k==='indice'?'<div class="navsec">Inteligência</div>':k==='paises'?'<div class="navsec">Operação</div>':'')+`<button data-v="${k}" class="${cur===k?'on':''}"><span class="ic">${m.icon}</span>${esc(m.title)}${n!==''?`<span class="cnt">${n}</span>`:''}</button>`}).join('');}
+function renderNav(){document.getElementById('nav').innerHTML=navHTML();document.getElementById('mobnav').innerHTML=navHTML(1);
+ document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>go(b.dataset.v));}
+function go(v){cur=v;filt={q:'',reg:''};try{history.replaceState(null,'','#'+v)}catch(_){}render();window.scrollTo(0,0);}
+
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2600);}
+function banner(t,kind){const b=document.getElementById('banner');b.className='banner '+(kind||'warn')+(t?' show':'');b.innerHTML=t||'';}
+function setStatus(state,txt){['dbDot','dbDot2'].forEach(i=>{const d=document.getElementById(i);d.className='dot '+state});document.getElementById('dbTxt').textContent=txt;document.getElementById('dbTxt2').textContent=txt;}
+
+/* ---------- RENDER ---------- */
+function render(){renderNav();const v=document.getElementById('view');
+ if(cur==='painel')v.innerHTML=painel();else if(cur==='indice')v.innerHTML=indice();else if(cur==='ia')v.innerHTML=aiView();else v.innerHTML=listView(cur);
+ bind();}
+
+function header(t,sub,btn){return`<div class="top"><div><div class="eyebrow">Futuro Sem Fronteiras</div><h1>${t}</h1><p>${sub}</p></div>${btn||''}</div>`;}
+
+function painel(){
+ const P=S.parceiros,J=S.jovens,E=S.empresas,V=S.vagas,PR=S.projetos,C=S.paises;
+ const allIso=new Set([...C,...P,...J,...E,...V,...PR].map(x=>x.pais).filter(x=>x&&x!=='GL'));
+ const pipe=P.filter(p=>p.estagio!=='Contrato assinado').reduce((a,p)=>a+num(p.valor),0);
+ const signed=P.filter(p=>p.estagio==='Contrato assinado').reduce((a,p)=>a+num(p.valor),0);
+ const orc=PR.reduce((a,p)=>a+num(p.orcamento),0),des=PR.reduce((a,p)=>a+num(p.desembolsado),0);
+ const cert=J.filter(j=>j.status==='Certificado'||j.status==='Empregado').length,emp=J.filter(j=>j.status==='Empregado').length;
+ const selos=E.filter(e=>seal(e)!=='Em adesão').length,vab=V.filter(v=>v.status!=='Preenchida').reduce((a,v)=>a+num(v.qtd||1),0);
+ const byReg=REGIONS.map(r=>[r,[...C,...P,...J,...E,...V,...PR].filter(x=>creg(x.pais)===r).length]);const mx=Math.max(1,...byReg.map(x=>x[1]));
+ const fun=STAGES_P.map(s=>[s,P.filter(p=>p.estagio===s).length]);const fm=Math.max(1,...fun.map(x=>x[1]));
+ const afr=[...C,...P,...J,...E,...V,...PR].filter(x=>creg(x.pais)==='África');
+ const feed=S.atividade.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,14);
+ const total=P.length+J.length+E.length+V.length+PR.length+C.length;
+ return header('Painel Global','Visão em tempo real de todos os países, programas, parceiros e investimentos.',`<button class="btn btn-gold" data-new="parceiros">+ Novo parceiro</button>`)+
+ (total===0?`<div class="card" style="margin-bottom:16px;background:linear-gradient(150deg,var(--navy),var(--navy2));color:#fff;border:0"><h3 style="color:var(--gold2)">Bem-vinda ao seu sistema integrado global</h3><p style="color:#c9d2e6;font-size:.92rem">O banco de dados está pronto e vazio. Comece cadastrando um país, um parceiro ou um projeto: cada registro alimenta o painel, o Índice de Excelência e o Assistente IA na hora.</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn btn-gold" data-new="paises">+ País</button><button class="btn btn-line" data-new="parceiros">+ Parceiro</button><button class="btn btn-line" data-new="projetos">+ Projeto</button></div></div>`:'')+
+ `<div class="kpis">
+  <div class="kpi dark"><div class="l">Países conectados</div><div class="v">${allIso.size}</div><div class="s">de ${COUNTRIES.length} na plataforma</div></div>
+  <div class="kpi"><div class="l">Parceiros</div><div class="v">${P.length}</div><div class="s">${P.filter(p=>p.estagio==='Contrato assinado').length} com contrato assinado</div></div>
+  <div class="kpi"><div class="l">Em negociação</div><div class="v" style="font-size:1.45rem">${usd(pipe)}</div><div class="s">assinado: ${usd(signed)}</div></div>
+  <div class="kpi"><div class="l">Investimento em projetos</div><div class="v" style="font-size:1.45rem">${usd(orc)}</div><div class="s">${orc?Math.round(des/orc*100):0}% desembolsado</div></div>
+  <div class="kpi"><div class="l">Jovens na plataforma</div><div class="v">${fmt(J.length)}</div><div class="s">${cert} certificados · ${emp} empregados</div></div>
+  <div class="kpi"><div class="l">Taxa de empregabilidade</div><div class="v">${J.length?Math.round(emp/J.length*100):0}%</div><div class="s">jovens empregados / total</div></div>
+  <div class="kpi"><div class="l">Empresas com selo</div><div class="v">${selos}</div><div class="s">de ${E.length} empresas</div></div>
+  <div class="kpi"><div class="l">Vagas abertas</div><div class="v">${fmt(vab)}</div><div class="s">${V.length} oportunidades</div></div>
+ </div>
+ <div class="grid2">
+  <div class="card"><h3>Presença por região</h3><div class="bars">${byReg.map(([r,n])=>`<div class="bar"><span>${r}</span><div class="t"><div class="f ${r==='África'?'af':''}" style="width:${n/mx*100}%"></div></div><b>${n}</b></div>`).join('')}</div></div>
+  <div class="card africa"><h3>África · prioridade</h3><div class="big">${afr.length}</div><p style="color:#f0dcd0;font-size:.88rem">registros no continente: ${new Set(afr.map(x=>x.pais)).size} países, ${afr.filter(x=>x.tipo).length} parceiros, ${S.jovens.filter(j=>creg(j.pais)==='África').length} jovens.</p><button class="btn btn-gold" style="margin-top:14px" data-go="paises" data-reg="África">Ver países africanos</button></div>
+ </div>
+ <div class="grid2">
+  <div class="card"><h3>Funil de parcerias</h3><div class="funnel">${fun.map(([s,n],i)=>`<div class="fs" style="width:${100-i*9}%;background:hsl(${222-i*6},${45+i*5}%,${22+i*6}%)"><span>${s}</span><b>${n}</b></div>`).join('')}</div></div>
+  <div class="card"><h3>Atividade recente</h3>${feed.length?`<div class="feed">${feed.map(a=>`<div>${esc(a.txt)}<small>${new Date(a.ts).toLocaleString('pt-BR')}</small></div>`).join('')}</div>`:'<p class="hint">As ações da equipe aparecem aqui.</p>'}</div>
+ </div>`;}
+
+function rowVal(mod,r,k){
+ if(k==='pais')return esc(cname(r.pais));
+ if(k==='regiao')return esc(creg(r.pais));
+ if(k==='valor'||k==='orcamento')return usd(r[k]);
+ if(k==='estagio'||k==='status'||k==='fase'){const arr=mod==='paises'?STAGES_C:mod==='parceiros'?STAGES_P:null;const i=arr?arr.indexOf(r[k]):['Inscrito','Em formação','Em prática','Certificado','Empregado','Aberta','Em seleção','Preenchida'].indexOf(r[k]);return r[k]?`<span class="tag t${Math.max(0,i)%5}">${esc(r[k])}</span>`:'—';}
+ if(k==='horas')return fmt(num(r.horasFormacao)+num(r.horasPratica))+' h';
+ if(k==='selo'){const s=seal(r);return`<span class="seal"><i style="background:${SEAL_COL[s]}"></i>${s}</span>`;}
+ if(k==='exec'){const p=num(r.orcamento)?Math.round(num(r.desembolsado)/num(r.orcamento)*100):0;return p+'%';}
+ if(k==='indice'){const a=S.avaliacoes.find(x=>x._id===r.pais);return a?scoreOf(a)+'%':'—';}
+ return esc(r[k]||'—');}
+
+function filtered(mod){const q=filt.q.toLowerCase();return S[mod].filter(r=>(!filt.reg||creg(r.pais)===filt.reg)&&(!q||JSON.stringify(r).toLowerCase().includes(q)||cname(r.pais).toLowerCase().includes(q)))
+ .sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));}
+
+function listView(mod){const m=MODULES[mod],rows=filtered(mod);
+ return header(m.title,m.desc,`<button class="btn btn-gold" data-new="${mod}">+ Novo ${m.sing}</button>`)+
+ `<div class="toolbar"><input id="q" placeholder="Buscar em ${m.title.toLowerCase()}…" value="${esc(filt.q)}"><select id="reg"><option value="">Todas as regiões</option>${REGIONS.map(r=>`<option ${filt.reg===r?'selected':''}>${r}</option>`).join('')}</select><button class="btn btn-line" id="csv">Copiar CSV</button></div>`+
+ (rows.length?`<div class="tblw"><table class="tbl"><thead><tr>${m.cols.map(c=>`<th>${c[1]}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr data-edit="${mod}" data-id="${esc(r._id)}">${m.cols.map(c=>`<td>${rowVal(mod,r,c[0])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+ <div class="cards">${rows.map(r=>`<div class="mc" data-edit="${mod}" data-id="${esc(r._id)}"><b>${rowVal(mod,r,m.cols[0][0])}</b><div class="meta">${m.cols.slice(1).map(c=>`<span>${rowVal(mod,r,c[0])}</span>`).join('·')}</div></div>`).join('')}</div>`
+ :`<div class="card empty"><div class="e">${m.icon}</div><p>Nenhum registro${filt.q||filt.reg?' com esse filtro':''} ainda.</p><button class="btn btn-gold" style="margin-top:12px" data-new="${mod}">+ Novo ${m.sing}</button></div>`);}
+
+/* ---------- INDEX ---------- */
+function scoreOf(a){return Math.round(CRITERIA.reduce((s,_,i)=>s+num(a['c'+i]),0)/(CRITERIA.length*10)*100);}
+function tier(p){return p>=85?['Padrão de excelência mundial','#2f7d5b']:p>=70?['Avançado','#1d3b78']:p>=50?['Em desenvolvimento','#a8781f']:['Prioridade de cooperação','#c8553d'];}
+function ring(p,col){const r=50,c=2*Math.PI*r;return`<svg class="ring" viewBox="0 0 120 120"><circle cx="60" cy="60" r="${r}" fill="none" stroke="#efe9dd" stroke-width="12"/><circle cx="60" cy="60" r="${r}" fill="none" stroke="${col}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${c*p/100} ${c}" transform="rotate(-90 60 60)"/><text x="60" y="68" text-anchor="middle" font-family="Fraunces,serif" font-size="26" font-weight="800" fill="#0b1630">${p}%</text></svg>`;}
+let idxSel='';
+function indice(){const A=S.avaliacoes.slice().sort((a,b)=>scoreOf(b)-scoreOf(a));
+ const sel=A.find(a=>a._id===idxSel)||null;const vals=sel||{};
+ return header('Índice Global de Excelência Juvenil','Compare cada país com o padrão de excelência dos sistemas mais avançados do mundo em proteção, educação e primeiro emprego.','')+
+ `<div class="grid2" style="margin-top:0">
+ <div class="card"><h3>Avaliar um país</h3><div class="fgrid" style="grid-template-columns:1fr"><label>País<select id="idxPais"><option value="">Escolha…</option>${countryOpts()}</select></label></div>
+ <div id="crits" style="margin-top:12px">${CRITERIA.map((c,i)=>`<div class="crit"><span>${c}</span><input type="range" min="0" max="10" value="${num(vals['c'+i])}" data-c="${i}"><b id="cv${i}">${num(vals['c'+i])}</b></div>`).join('')}</div>
+ <div class="mact"><span class="hint">0 = inexistente · 10 = igual aos melhores sistemas do mundo</span><button class="btn btn-gold" id="idxSave">Salvar avaliação</button></div></div>
+ <div class="card"><h3>Resultado</h3><div id="idxRes"></div></div></div>
+ <div class="card" style="margin-top:16px"><h3>Ranking dos países avaliados</h3>${A.length?`<div class="bars">${A.map(a=>{const p=scoreOf(a),[t,col]=tier(p);return`<div class="bar" style="grid-template-columns:150px 1fr 44px;cursor:pointer" data-idx="${a._id}"><span>${esc(cname(a._id))}</span><div class="t"><div class="f" style="width:${p}%;background:${col}"></div></div><b>${p}%</b></div>`}).join('')}</div>`:'<p class="hint">Nenhum país avaliado ainda. Escolha um país acima, pontue os 10 critérios e salve.</p>'}
+ <p class="hint" style="margin-top:12px">Autoavaliação técnica feita pela equipe a partir de diagnóstico jurídico e institucional de cada país. A referência de 100% representa o padrão dos sistemas de aprendizagem e proteção mais avançados do mundo.</p></div>`;}
+function idxResult(){const sliders=[...document.querySelectorAll('[data-c]')];if(!sliders.length)return;const a={};sliders.forEach(s=>a['c'+s.dataset.c]=num(s.value));const p=scoreOf(a),[t,col]=tier(p);
+ const gaps=CRITERIA.map((c,i)=>[c,a['c'+i]]).sort((x,y)=>x[1]-y[1]).slice(0,3);
+ document.getElementById('idxRes').innerHTML=`<div class="score">${ring(p,col)}<div><b style="color:${col};font-size:1.1rem">${t}</b><p class="hint">Distância até o padrão de excelência: ${100-p} pontos</p></div></div>
+ <div class="cmp" style="margin-top:14px"><div class="row" style="font-weight:700;color:var(--muted)"><span>Critério</span><span>País vs. excelência (10)</span><span></span></div>${CRITERIA.map((c,i)=>`<div class="row"><span>${c.split(' ').slice(0,4).join(' ')}…</span><div class="t"><div class="f" style="width:${a['c'+i]*10}%;background:${a['c'+i]>=8?'#2f7d5b':a['c'+i]>=5?'#a8781f':'#c8553d'}"></div></div><b>${a['c'+i]}</b></div>`).join('')}</div>
+ <p class="hint" style="margin-top:12px"><b>Prioridades de cooperação:</b> ${gaps.map(g=>esc(g[0])).join('; ')}.</p>`;}
+
+/* ---------- AI ---------- */
+let SAMPLE=null,aiCtl=null;
+function summary(){const by=k=>S[k].reduce((m,r)=>{const c=cname(r.pais);m[c]=(m[c]||0)+1;return m},{});
+ return JSON.stringify({paises:S.paises.map(p=>({pais:cname(p.pais),estagio:p.estagio})),parceiros:S.parceiros.map(p=>({tipo:p.tipo,pais:cname(p.pais),estagio:p.estagio,valor:num(p.valor),programa:p.programa})),
+ projetos:S.projetos.map(p=>({nome:p.nome,pais:cname(p.pais),fase:p.fase,orcamento:num(p.orcamento),desembolsado:num(p.desembolsado)})),
+ jovensPorPais:by('jovens'),jovensPorSituacao:S.jovens.reduce((m,j)=>{m[j.status||'—']=(m[j.status||'—']||0)+1;return m},{}),
+ empresas:S.empresas.map(e=>({pais:cname(e.pais),selo:seal(e)})),vagasAbertas:S.vagas.filter(v=>v.status!=='Preenchida').length,
+ indice:S.avaliacoes.map(a=>({pais:cname(a._id),pontuacao:scoreOf(a)}))});}
+const BASE=`Você é o Assistente IA da plataforma global "Futuro Sem Fronteiras", coordenada pela Coordenadora Patrícia Santos Pereira (Elos 360° Global). A plataforma reúne 6 programas: Direitos da Infância (proteção, escola, combate ao trabalho infantil), Da Escola ao Trabalho (aprendizagem e primeiro emprego, modelo 50% formação / 50% prática com tutor certificado, 3 modalidades), Mulheres na Mineração 2030 (Connect, Academia, Business Bridge, Mentoria, Opportunity Forum, Exchange), Mineração que Transforma (conteúdo local, pacto comunitário, legado ambiental; piloto indicativo de 24 meses ~US$ 1,5 milhão), Rede Global de Oportunidades (Carteira Digital Global de Competências, Selo Empresa Amiga da Juventude Bronze/Prata/Ouro/Platina) e Programa Continental África (prioridade). Roteiro por país: 2027 piloto 1.000 jovens; 2028 5.000; 2029 15.000; 2030 30.000/ano (metas indicativas). Modelo comercial: fee de estruturação, mensalidade + success fee, projetos especiais por demanda, expansão com revisão anual; financiamento misto (equity, grant, dívida) com desembolso por marcos. Proteção da criança é inegociável. Responda em português, com texto profissional, persuasivo e pronto para uso. Não invente estatísticas oficiais; quando citar números de um país, diga que devem ser confirmados.`;
+function aiView(){return header('Assistente IA Global','Inteligência artificial integrada ao banco de dados: propostas, análises e estratégia em segundos.','')+
+ `<div class="ai"><div class="card"><h3>O que você precisa?</h3>
+ <div class="fgrid" style="grid-template-columns:1fr"><label>País<select id="aiPais">${countryOpts(1)}</select></label>
+ <label>Público<select id="aiPub"><option>Governo</option><option>Investidor</option><option>Empresa</option><option>Organismo internacional</option><option>Mineradora</option></select></label></div>
+ <div class="chips" style="margin-top:12px">
+  <button class="chip" data-ai="proposta">📄 Proposta de parceria</button>
+  <button class="chip" data-ai="pitch">🎤 Pitch de 1 minuto</button>
+  <button class="chip" data-ai="email">✉️ E-mail de primeiro contato</button>
+  <button class="chip" data-ai="analise">📊 Analisar minha carteira</button>
+  <button class="chip" data-ai="plano">🗺️ Plano de 90 dias no país</button>
+  <button class="chip" data-ai="riscos">🛡️ Riscos e salvaguardas</button>
+ </div>
+ <div class="fgrid" style="grid-template-columns:1fr;margin-top:14px"><label>Ou pergunte livremente<textarea id="aiQ" rows="3" placeholder="Ex.: quais países africanos devo priorizar em 2027?"></textarea></label></div>
+ <div class="mact"><button class="btn btn-line" id="aiStop" style="display:none">Parar</button><button class="btn btn-gold" id="aiGo">Perguntar à IA</button></div>
+ <p class="hint" id="aiHint"></p></div>
+ <div><div class="aiout" id="aiOut">As respostas aparecem aqui, já usando os dados reais do seu sistema.</div><div class="mact"><span></span><button class="btn btn-line" id="aiCopy">Copiar texto</button></div></div></div>`;}
+async function runAI(kind){if(!SAMPLE){document.getElementById('aiHint').textContent='A IA não está disponível nesta visualização. Abra o sistema pelo link no claude.ai.';return;}
+ const pais=cname(document.getElementById('aiPais').value),pub=document.getElementById('aiPub').value,q=document.getElementById('aiQ').value.trim();
+ const T={proposta:`Escreva uma proposta de parceria completa e impactante para ${pub} de ${pais}, com: título, visão, por que agora, programas recomendados para esse país, como funciona, metas indicativas, modelo de parceria e próximos passos.`,
+  pitch:`Escreva um pitch de 1 minuto, falado, para apresentar a plataforma a um(a) ${pub} de ${pais}.`,
+  email:`Escreva um e-mail curto de primeiro contato, com assunto, para um(a) ${pub} de ${pais}, pedindo uma reunião executiva.`,
+  analise:`Analise a carteira atual do sistema (dados abaixo). Aponte pontos fortes, gargalos no funil, países e parceiros a priorizar, e 5 ações concretas para a próxima semana. Se houver poucos dados, diga isso e recomende o que cadastrar primeiro.`,
+  plano:`Monte um plano de 90 dias para implantar a plataforma em ${pais} (dias 1–30, 31–60, 61–90), com entregas, parceiros locais a buscar e marcos de decisão.`,
+  riscos:`Liste os principais riscos (jurídicos, de proteção da criança, reputacionais, financeiros) de implantar a plataforma em ${pais} e as salvaguardas de cada um.`};
+ const ask=kind?T[kind]:q;if(!ask){document.getElementById('aiHint').textContent='Escolha uma opção ou escreva uma pergunta.';return;}
+ const out=document.getElementById('aiOut');out.textContent='Pensando…';document.getElementById('aiStop').style.display='';document.getElementById('aiGo').disabled=true;document.getElementById('aiHint').textContent='';
+ aiCtl=new AbortController();
+ try{const r=await SAMPLE(`${BASE}\n\nDADOS ATUAIS DO SISTEMA (JSON):\n${summary()}\n\nTAREFA:\n${ask}\n\nEscreva em texto simples, sem markdown com asteriscos; use títulos em MAIÚSCULAS e listas com "•".`,{signal:aiCtl.signal,modelTier:'complex',cache:false,onText:({text})=>{out.textContent=text;}});
+  out.textContent=r.text;log(`IA gerou: ${kind||'resposta livre'} (${pais})`);}
+ catch(e){if(e&&e.text)out.textContent=e.text;document.getElementById('aiHint').textContent=e?.code==='rate_limited'?'Muitas consultas seguidas. Aguarde um pouco.':e?.code==='not_granted'?'A IA precisa da sua autorização na primeira utilização.':e?.name==='AbortError'?'Interrompido.':'Não foi possível concluir agora.';}
+ finally{document.getElementById('aiStop').style.display='none';document.getElementById('aiGo').disabled=false;}}
+
+/* ---------- FORMS ---------- */
+function field(f,v){const val=v??'';const lab=`${esc(f.l)}${f.req?' *':''}`;const cls=f.full?'full':'';
+ if(f.type==='select')return`<label class="${cls}">${lab}<select name="${f.k}"><option value="">—</option>${f.opts.map(o=>`<option ${o===val?'selected':''}>${esc(o)}</option>`).join('')}</select></label>`;
+ if(f.type==='country')return`<label class="${cls}">${lab}<select name="${f.k}" ${f.req?'required':''}><option value="">Escolha o país…</option>${countryOpts(f.global)}</select></label>`;
+ if(f.type==='textarea')return`<label class="${cls}">${lab}<textarea name="${f.k}" rows="3">${esc(val)}</textarea></label>`;
+ if(f.type==='check')return`<label class="full chk"><input type="checkbox" name="${f.k}" ${val?'checked':''}> ${esc(f.l)}</label>`;
+ return`<label class="${cls}">${lab}<input name="${f.k}" type="${f.type||'text'}" value="${esc(val)}" ${f.req?'required':''} ${f.type==='number'?'min="0" step="any"':''}></label>`;}
+function openForm(mod,id){const m=MODULES[mod],r=id?S[mod].find(x=>x._id===id):null;
+ const box=document.getElementById('mbox');
+ box.innerHTML=`<h2>${r?'Editar':'Novo'} ${m.sing}</h2><form id="frm"><div class="fgrid">${m.fields.map(f=>field(f,r?.[f.k])).join('')}</div>
+ ${mod==='jovens'?'<p class="hint">Dados de menores de 18 anos só podem ser cadastrados com autorização do responsável legal e conforme a lei de proteção de dados do país.</p>':''}
+ <div class="mact"><div>${r?'<button type="button" class="btn btn-danger" id="del">Excluir</button>':''}</div><div style="display:flex;gap:8px"><button type="button" class="btn btn-line" id="cancel">Cancelar</button><button class="btn btn-gold" ${CANWRITE?'':'disabled'}>Salvar</button></div></div></form>`;
+ m.fields.filter(f=>f.type==='country').forEach(f=>{const s=box.querySelector(`[name=${f.k}]`);if(r?.[f.k])s.value=r[f.k];if(r&&m.idField===f.k)s.disabled=true;});
+ document.getElementById('modal').classList.add('show');
+ document.getElementById('cancel').onclick=closeForm;
+ if(r)document.getElementById('del').onclick=()=>delRec(mod,r);
+ document.getElementById('frm').onsubmit=e=>{e.preventDefault();saveRec(mod,r,new FormData(e.target),box);};}
+function closeForm(){document.getElementById('modal').classList.remove('show');}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeForm();});
+
+async function saveRec(mod,r,fd,box){const m=MODULES[mod];const data={};
+ m.fields.forEach(f=>{if(f.type==='check')data[f.k]=!!fd.get(f.k);else if(f.type==='number'){const v=fd.get(f.k);data[f.k]=v===''||v==null?null:num(v);}else{const v=fd.get(f.k);data[f.k]=(v??(r?.[f.k]??'')).toString().trim();}});
+ if(mod==='jovens'&&num(data.idade)>0&&num(data.idade)<18&&(!data.responsavel||!data.consentimento)){toast('Menor de 18: informe o responsável legal e marque a autorização.');return;}
+ const id=r?r._id:(m.idField?data[m.idField]:null);
+ if(m.idField&&!r&&S[mod].some(x=>x._id===id)){toast('Esse país já está cadastrado. Abra-o na lista para editar.');return;}
+ data.updatedAt=Date.now();data.updatedBy=ME;if(!r){data.createdAt=Date.now();}
+ const label=data.nome||data.titulo||cname(data.pais);
+ if(!DB){const rec={...(r||{}),...data,_id:id||('loc'+Date.now())};S[mod]=r?S[mod].map(x=>x._id===r._id?rec:x):[...S[mod],rec];closeForm();render();toast('Salvo neste aparelho (sem banco conectado).');return;}
+ const btn=box.querySelector('.btn-gold');btn.disabled=true;btn.textContent='Salvando…';
+ try{const col=DB.collection(mod);const ref=id?col.doc(id):col.doc();
+  if(r){const {_id,...old}=r;await ref.set({...old,...data});}else await ref.set(data);
+  closeForm();toast('Salvo no banco de dados ✓');log(`${r?'Atualizou':'Cadastrou'} ${m.sing}: ${label}`);}
+ catch(e){btn.disabled=false;btn.textContent='Salvar';handleWriteErr(e);}}
+async function delRec(mod,r){const box=document.getElementById('mbox');
+ box.querySelector('.mact').innerHTML=`<span style="font-weight:600">Excluir definitivamente este registro?</span><div style="display:flex;gap:8px"><button type="button" class="btn btn-line" id="no">Não</button><button type="button" class="btn btn-danger" id="yes">Sim, excluir</button></div>`;
+ document.getElementById('no').onclick=()=>openForm(mod,r._id);
+ document.getElementById('yes').onclick=async()=>{if(!DB){S[mod]=S[mod].filter(x=>x._id!==r._id);closeForm();render();return;}
+  try{await DB.collection(mod).doc(r._id).delete();closeForm();toast('Registro excluído');log(`Excluiu ${MODULES[mod].sing}: ${r.nome||r.titulo||cname(r.pais)}`);}catch(e){handleWriteErr(e);}};}
+function handleWriteErr(e){if(e?.code==='invalid_argument'){CANWRITE=false;toast('Seu acesso é só de leitura. Peça acesso de Colaborador à administradora.');}
+ else if(e?.code==='quota_exceeded')toast('Limite de armazenamento atingido. Exclua registros antigos.');
+ else if(e?.code==='resource_exhausted')toast('Muitas operações seguidas. Aguarde alguns segundos.');
+ else toast('Não foi possível salvar agora. Tente de novo.');}
+async function log(txt){if(!DB||!CANWRITE)return;try{await DB.collection('atividade').add({txt,ts:Date.now(),by:ME});
+ if(S.atividade.length>300){const old=S.atividade.slice().sort((a,b)=>a.ts-b.ts).slice(0,S.atividade.length-300);for(const o of old){await DB.collection('atividade').doc(o._id).delete();}}}catch(_){}}
+
+async function saveIdx(){const iso=document.getElementById('idxPais').value;if(!iso){toast('Escolha o país.');return;}
+ const a={pais:iso,updatedAt:Date.now(),updatedBy:ME};document.querySelectorAll('[data-c]').forEach(s=>a['c'+s.dataset.c]=num(s.value));
+ if(!DB){S.avaliacoes=[...S.avaliacoes.filter(x=>x._id!==iso),{...a,_id:iso}];idxSel=iso;render();return;}
+ try{await DB.collection('avaliacoes').doc(iso).set(a);idxSel=iso;toast('Avaliação salva ✓');log(`Avaliou ${cname(iso)}: ${scoreOf(a)}% no Índice de Excelência`);}catch(e){handleWriteErr(e);}}
+
+function copyText(t,btn){navigator.clipboard.writeText(t).then(()=>{btn.textContent='Copiado ✓'},()=>{btn.textContent='Não foi possível copiar'});}
+
+/* ---------- BIND ---------- */
+function bind(){
+ document.querySelectorAll('[data-new]').forEach(b=>b.onclick=()=>openForm(b.dataset.new));
+ document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openForm(b.dataset.edit,b.dataset.id));
+ document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{go(b.dataset.go);if(b.dataset.reg){filt.reg=b.dataset.reg;render();}});
+ const q=document.getElementById('q');if(q){q.oninput=()=>{filt.q=q.value;const p=q.selectionStart;render();const n=document.getElementById('q');n.focus();n.setSelectionRange(p,p);};}
+ const reg=document.getElementById('reg');if(reg)reg.onchange=()=>{filt.reg=reg.value;render();};
+ const csv=document.getElementById('csv');if(csv)csv.onclick=()=>{const m=MODULES[cur];const rows=filtered(cur);const h=m.fields.map(f=>f.l);
+  const lines=[h.join(';'),...rows.map(r=>m.fields.map(f=>{let v=f.type==='country'?cname(r[f.k]):r[f.k];return'"'+String(v??'').replace(/"/g,'""')+'"'}).join(';'))];copyText(lines.join('\n'),csv);};
+ if(cur==='indice'){const sp=document.getElementById('idxPais');if(idxSel)sp.value=idxSel;
+  sp.onchange=()=>{idxSel=sp.value;const a=S.avaliacoes.find(x=>x._id===idxSel)||{};document.querySelectorAll('[data-c]').forEach(s=>{s.value=num(a['c'+s.dataset.c]);document.getElementById('cv'+s.dataset.c).textContent=s.value});idxResult();};
+  document.querySelectorAll('[data-c]').forEach(s=>s.oninput=()=>{document.getElementById('cv'+s.dataset.c).textContent=s.value;idxResult();});
+  document.querySelectorAll('[data-idx]').forEach(b=>b.onclick=()=>{idxSel=b.dataset.idx;render();});
+  document.getElementById('idxSave').onclick=saveIdx;idxResult();}
+ if(cur==='ia'){document.querySelectorAll('[data-ai]').forEach(b=>b.onclick=()=>runAI(b.dataset.ai));document.getElementById('aiGo').onclick=()=>runAI(null);
+  document.getElementById('aiStop').onclick=()=>aiCtl&&aiCtl.abort();document.getElementById('aiCopy').onclick=e=>copyText(document.getElementById('aiOut').textContent,e.target);}
+}
+
+/* ---------- BOOT ---------- */
+const h=(location.hash||'').slice(1);if(ORDER.includes(h))cur=h;
+render();setStatus('warn','Conectando ao banco…');
+(async()=>{
+ const c=window.claude;
+ if(!c||!c.use){setStatus('warn','Modo local');banner('Servidor indisponível no momento: os dados ficam só neste aparelho até a conexão voltar.');return;}
+ const [db,user,sample]=await Promise.all([c.use('db'),c.use('user'),c.use('sample')]);
+ DB=db;USER=user;SAMPLE=sample;
+ if(user){try{ME=(await user.id())||'';const me=await user.me();document.getElementById('whoName').textContent=me?.name||'Equipe';}catch(_){}
+  document.getElementById('whoRole').textContent=user.isOwner()?'Administradora · acesso total':user.canEdit()?'Editor':'Colaborador';
+  const cw=user.can?user.can('data.write'):null;if(cw===false)CANWRITE=false;}
+ if(!DB){setStatus('warn','Modo local');banner('Entre na sua conta para conectar ao banco de dados. Sem login, os dados ficam só neste aparelho.');return;}
+ let got=0;const timer=setTimeout(()=>{if(got<COLS.length){setStatus('warn','Sincronizando…');banner('O banco de dados ainda não respondeu. Os dados exibidos podem estar desatualizados.');}},10000);
+ COLS.forEach(col=>{DB.collection(col).onSnapshot(snap=>{S[col]=snap.docs.map(d=>({...d.data(),_id:d.id}));
+   if(!snap.metadata.fromCache&&!S['_ok'+col]){S['_ok'+col]=1;got++;if(got===COLS.length){clearTimeout(timer);banner('');setStatus('ok','Banco conectado · tempo real');}}
+   if(!document.getElementById('modal').classList.contains('show')||col==='atividade')render();},
+  e=>{clearTimeout(timer);setStatus('warn','Banco indisponível');banner(e.code==='revoked'?'Seu acesso a este sistema mudou.':'Não foi possível ler o banco de dados agora.','err');});});
+ if(!CANWRITE)banner('Você está com acesso de leitura. Para cadastrar e editar, peça acesso de Colaborador à administradora.');
+})();
+</script>
+</body>
+</html>
