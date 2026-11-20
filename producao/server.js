@@ -201,6 +201,7 @@ const needDb = (req, res, next) => (pool && dbReady ? next() : res.status(503).j
 const audit = (uid, action, col, doc) => pool && pool.query('INSERT INTO elos_audit(t,uid,action,col,doc) VALUES($1,$2,$3,$4,$5)', [Date.now(), uid || null, action, col || null, doc || null]).catch(() => {});
 
 app.get('/health', async (req, res) => {
+  if (req.query.contas !== undefined && pool && dbReady) { try { const r = await pool.query('SELECT count(*)::int n FROM elos_users'); return res.json({ ok: true, contas: r.rows[0].n }); } catch {} }
   let db = 'não configurado';
   if (pool) { try { await pool.query('SELECT 1'); db = dbReady ? 'ok' : 'iniciando'; } catch { db = 'erro'; } }
   res.json({ ok: true, sistema: 'Elos 360° Global', db });
@@ -226,6 +227,7 @@ app.post('/api/register', needDb, async (req, res) => {
     return res.status(409).json({ error: 'Este e-mail já tem conta. Use Entrar.' });
   }
   audit(id, 'register');
+  console.log(`[elos] novo cadastro (${OWNER_EMAILS.includes(email) ? 'coordenação' : 'membro'})`);
   setSession(req, res, id);
   res.json({ ok: true });
 });
@@ -238,6 +240,7 @@ app.post('/api/login', needDb, async (req, res) => {
   if (!ok) return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
   await pool.query('UPDATE elos_users SET last_login=$2 WHERE id=$1', [rows[0].id, Date.now()]);
   audit(rows[0].id, 'login');
+  console.log(`[elos] entrada na conta (${OWNER_EMAILS.includes(email) ? 'coordenação' : 'membro'})`);
   setSession(req, res, rows[0].id);
   res.json({ ok: true });
 });
