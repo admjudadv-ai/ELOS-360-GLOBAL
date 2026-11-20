@@ -29,10 +29,19 @@ if (!SECRET || SECRET.length < 32) {
 }
 
 /* ---------- banco ---------- */
+function sslFor(url) {
+  if (process.env.PGSSL === 'off') return false;
+  if (process.env.PGSSL === 'on') return { rejectUnauthorized: false };
+  try {
+    const h = new URL(url).hostname;
+    if (!h || h === 'localhost' || h === '127.0.0.1' || !h.includes('.')) return false; // rede interna do Render ou local
+  } catch { return false; }
+  return { rejectUnauthorized: false };
+}
 const pool = process.env.DATABASE_URL
   ? new Pool({
       connectionString: process.env.DATABASE_URL,
-      ssl: /localhost|127\.0\.0\.1|\/tmp\//.test(process.env.DATABASE_URL) || process.env.PGSSL === 'off' ? false : { rejectUnauthorized: false },
+      ssl: sslFor(process.env.DATABASE_URL),
       max: 10,
     })
   : null;
@@ -354,8 +363,17 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'erro interno' });
 });
 
-migrate()
-  .catch(e => console.error('[elos] falha ao preparar o banco:', e.message))
-  .finally(() => app.listen(PORT, () => console.log(`[elos] Elos 360° Global no ar na porta ${PORT} · banco: ${pool ? (dbReady ? 'ok' : 'erro') : 'não configurado'}`)));
+app.listen(PORT, () => console.log(`[elos] Elos 360° Global no ar na porta ${PORT}`));
+(async function connectDb(attempt = 1) {
+  if (!pool) return console.log('[elos] banco: não configurado');
+  try {
+    await migrate();
+    console.log('[elos] banco: ok');
+  } catch (e) {
+    const wait = Math.min(60, 5 * attempt);
+    console.error(`[elos] banco indisponível (${e.message}); nova tentativa em ${wait}s`);
+    setTimeout(() => connectDb(attempt + 1), wait * 1000);
+  }
+})();
 
 module.exports = app;
