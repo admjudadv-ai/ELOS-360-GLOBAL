@@ -18,6 +18,9 @@ services:
     startCommand: cd producao && npm start
     healthCheckPath: /health
     autoDeploy: true
+    domains:
+      - elos360global.com.br
+      - www.elos360global.com.br
     envVars:
       - key: NODE_VERSION
         value: "22"
