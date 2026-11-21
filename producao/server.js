@@ -503,6 +503,10 @@ app.use('/api', (req, res) => res.status(404).json({ error: 'não encontrado' })
 /* sistema Elos */
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'site.html')));
 app.get('/sw.js', (req, res) => { res.set('Cache-Control', 'no-cache'); res.set('Service-Worker-Allowed', '/'); res.sendFile(path.join(__dirname, 'public', 'sw.js')); });
+/* verificação do domínio pelo aplicativo Android (Google Play); acrescentar a impressão digital da Google Play após o primeiro envio */
+const ASSET_FP = (process.env.ANDROID_SHA256 || '').split(',').map(x => x.trim()).filter(Boolean);
+const ASSET_BASE = ['2F:5E:16:28:44:1B:D9:90:FE:EC:41:17:19:33:FB:A4:A1:4F:90:CC:82:88:F3:87:D0:53:B0:84:63:9F:5F:0E'];
+app.get('/.well-known/assetlinks.json', (req, res) => res.json([{ relation: ['delegate_permission/common.handle_all_urls'], target: { namespace: 'android_app', package_name: 'br.com.elo360global.app', sha256_cert_fingerprints: [...new Set([...ASSET_BASE, ...ASSET_FP])] } }]));
 app.get('/sistema', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'], maxAge: '5m', index: false }));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
