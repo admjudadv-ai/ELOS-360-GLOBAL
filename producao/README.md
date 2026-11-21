@@ -1,6 +1,6 @@
 # Elos 360° Global — servidor de produção
 
-Responsável: Coordenadora Patrícia Santos Pereira.
+Responsável: Coordenadora PSP.
 
 Sistema integrado e plataforma Elos 360° Global num servidor próprio: banco PostgreSQL, login seguro, tempo real e todas as telas do sistema (setores, módulos de gestão, programas, Eventos Globais, Futuros Clientes).
 

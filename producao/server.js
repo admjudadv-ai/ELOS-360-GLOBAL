@@ -1,7 +1,7 @@
 'use strict';
 /*
  * Elos 360° Global — servidor de produção
- * Responsável: Coordenadora Patrícia Santos Pereira
+ * Responsável: Coordenadora PSP
  *
  * - Banco PostgreSQL (DATABASE_URL), um armazém de documentos por coleção.
  * - Login próprio: senha com Argon2id, sessão em cookie assinado (HttpOnly, SameSite=Lax).
@@ -350,6 +350,15 @@ app.get('/api/stream', (req, res) => {
   req.on('close', () => { clearInterval(ping); clients.delete(c); });
 });
 
+/* saúde do sistema (painel de TI) */
+const BOOT = Date.now();
+app.get('/api/saude', async (req, res) => {
+  let db = false; try { if (pool) { await pool.query('SELECT 1'); db = true; } } catch {}
+  res.set('cache-control', 'no-store');
+  res.json({ ok: true, banco: db, versao: (process.env.RENDER_GIT_COMMIT || '').slice(0, 7), noAr: Math.round((Date.now() - BOOT) / 1000), node: process.version,
+    caches: { congressos: !!(MED && MED.data), cambio: !!(MK && MK.fx), bolsas: !!(MK && MK.ix), social: !!(SOC && SOC.data) } });
+});
+
 /* senha por ordem de chamada: contador atômico por fila */
 app.post('/api/senha/:fila', needDb, async (req, res) => {
   if (!req.user || !can(req.level, 'view')) return res.status(401).json({ error: 'entre na plataforma' });
@@ -450,7 +459,10 @@ const SIND = [
   ['SL.UEM.TOTL.ZS', 'des', 'Desemprego', '% da força de trabalho', 10, 1],
   ['SP.DYN.LE00.IN', 'vida', 'Baixa expectativa de vida', 'anos de expectativa de vida ao nascer', 65, -1]
 ];
-const SEXT = [['EG.FEC.RNEW.ZS', 'ren', 'Energia renovável no consumo final', '%'], ['EG.ELC.RNEW.ZS', 'renel', 'Eletricidade de fontes renováveis', '% da geração'], ['EN.GHG.CO2.PC.CE.AR5', 'co2', 'Emissões de CO₂ por habitante', 't por pessoa']];
+const SEXT = [['EG.FEC.RNEW.ZS', 'ren', 'Energia renovável no consumo final', '%'], ['EG.ELC.RNEW.ZS', 'renel', 'Eletricidade de fontes renováveis', '% da geração'], ['EN.GHG.CO2.PC.CE.AR5', 'co2', 'Emissões de CO₂ por habitante', 't por pessoa'],
+  ['NY.GDP.MKTP.CD', 'pib', 'PIB', 'US$'], ['NY.GDP.PCAP.CD', 'pibpc', 'PIB por habitante', 'US$'], ['SP.POP.TOTL', 'pop', 'População', 'pessoas'],
+  ['NV.AGR.TOTL.ZS', 'agr', 'Agropecuária', '% do PIB'], ['NV.IND.TOTL.ZS', 'ind', 'Indústria', '% do PIB'], ['NV.SRV.TOTL.ZS', 'srv', 'Serviços', '% do PIB'],
+  ['BX.KLT.DINV.WD.GD.ZS', 'ied', 'Investimento estrangeiro direto', '% do PIB'], ['NE.TRD.GNFS.ZS', 'com', 'Comércio exterior', '% do PIB'], ['GC.TAX.TOTL.GD.ZS', 'trib', 'Arrecadação de impostos', '% do PIB']];
 const AFR_MENA = 'DZ EG LY MA TN DJ'.split(' '), CASIA = 'KZ KG TJ TM UZ AM AZ GE TR MN AF'.split(' '), OCE = 'AU NZ PG FJ SB VU WS TO KI FM MH PW NR TV'.split(' ');
 const cont = (c, reg) => AFR_MENA.includes(c) ? 'África' : CASIA.includes(c) ? 'Ásia' : OCE.includes(c) ? 'Oceania' :
   ({ SSF: 'África', MEA: 'Ásia', ECS: 'Europa', LCN: 'América Latina e Caribe', NAC: 'América do Norte', EAS: 'Ásia', SAS: 'Ásia' })[reg] || null;
@@ -464,7 +476,7 @@ async function socLoad() {
   for (const c of ctry) if (c.region && c.region.id !== 'NA' && c.iso2Code && /^[A-Z]{2}$/.test(c.iso2Code)) { const k = cont(c.iso2Code, c.region.id); if (k) P[c.iso2Code] = { c: c.iso2Code, cont: k, renda: c.incomeLevel?.value || '', v: {} }; }
   await Promise.all([...SIND, ...SEXT].map(async ([id, k]) => {
     const rows = await wb('country/all/indicator/' + id + '?mrnev=1').catch(() => []);
-    for (const r of rows) { const c = r.country?.id && ctry.find(x => x.id === r.countryiso3code); const iso = c ? c.iso2Code : null; if (iso && P[iso] && r.value != null) P[iso].v[k] = [Math.round(r.value * 10) / 10, r.date]; }
+    for (const r of rows) { const c = r.country?.id && ctry.find(x => x.id === r.countryiso3code); const iso = c ? c.iso2Code : null; if (iso && P[iso] && r.value != null) P[iso].v[k] = [Math.abs(r.value) >= 1e5 ? Math.round(r.value) : Math.round(r.value * 10) / 10, r.date]; }
   }));
   for (const p of Object.values(P)) {
     p.d = SIND.map(([, k, nome, , lim, dir]) => { const x = p.v[k]; if (!x) return null; const g = dir > 0 ? x[0] / lim : (100 - x[0]) / (100 - lim); return g >= 1 ? { k, g } : null; })
