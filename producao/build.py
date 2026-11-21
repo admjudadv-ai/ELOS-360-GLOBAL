@@ -23,6 +23,10 @@ def inject(html: str) -> str:
     html = re.sub(r'(<head[^>]*>)', lambda m: m.group(1) + '\n' + SHIM, html, count=1)
     if 'manifest.webmanifest' not in html:
         html = html.replace('</head>', PWA + '</head>', 1)
+    if '/elora.js' not in html:
+        html = html.replace('</head>', '<link rel="stylesheet" href="/elora.css?v=20261121">\n</head>', 1)
+        i = html.rfind('</body>')
+        html = html[:i] + '<script src="/elora.js?v=20261121"></script>\n' + html[i:]
     html = html.replace('sua conta Claude', 'sua conta Elos')
     html = html.replace('href="index.html#', 'href="/sistema#')
     html = html.replace(

@@ -1,8 +1,8 @@
 /* Elos 360° Global — service worker do aplicativo.
    Páginas: rede primeiro, cópia local só se estiver sem internet.
    /api nunca é guardado em cache (dados sempre do servidor). */
-const CACHE = 'elos-app-v1';
-const BASE = ['/sistema', '/', '/elos-shim.js', '/logo-circular.png', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png'];
+const CACHE = 'elos-app-v2';
+const BASE = ['/sistema', '/', '/elos-shim.js', '/elora.js', '/elora.css', '/logo-circular.png', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(BASE)).then(() => self.skipWaiting()));

@@ -113,6 +113,7 @@ img,video{max-width:100%;height:auto}
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Elos 360°">
 <script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));</script>
+<link rel="stylesheet" href="/elora.css?v=20261121">
 </head>
 <body>
 <header>
@@ -1156,5 +1157,6 @@ M.forEach(m=>DB.collection('r_'+m.id).onSnapshot(q=>{S.d[m.id]=q.docs.map(d=>Obj
 ['prj','tsk','msg','evt','evp'].forEach(k=>DB.collection(k).onSnapshot(q=>{X[k]=q.docs.map(d=>Object.assign({},d.data(),{_id:d.id}));rr()},()=>{}))}
 rr()}catch(e){}})();
 </script>
+<script src="/elora.js?v=20261121"></script>
 </body>
 </html>
