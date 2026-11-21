@@ -1,0 +1,31 @@
+databases:
+  - name: dmps-global-db
+    databaseName: dmps_global_db
+    user: dmps_global_db_user
+    region: virginia
+    postgresMajorVersion: "16"
+    plan: free
+    ipAllowList: []
+
+services:
+  - type: web
+    name: dmps-global
+    runtime: node
+    region: virginia
+    plan: free
+    branch: producao-elos360
+    buildCommand: cd dmps && npm install --omit=dev
+    startCommand: cd dmps && npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dmps-global-db
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: OWNER_EMAILS
+        value: dmps.advisory@dmps.com.br,contato@elos360global.com.br
