@@ -395,13 +395,10 @@ async function fxLoad() {
 }
 async function ixOne([sym, nome, pais, reg]) {
   try {
-    const r = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?range=5d&interval=1d', { headers: { 'user-agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(12000) });
-    const res0 = (await r.json())?.chart?.result?.[0], m = res0?.meta;
+    const r = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?range=1d&interval=1d', { headers: { 'user-agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(12000) });
+    const m = (await r.json())?.chart?.result?.[0]?.meta;
     if (!m || m.regularMarketPrice == null) throw 0;
-    const cl = (res0.indicators?.quote?.[0]?.close || []).filter(x => x != null);
-    const ts = res0.timestamp || [], lastDay = ts.length ? new Date(ts[ts.length - 1] * 1000).toISOString().slice(0, 10) : '';
-    const today = m.regularMarketTime ? new Date(m.regularMarketTime * 1000).toISOString().slice(0, 10) : '';
-    const prev = cl.length >= 2 ? (lastDay === today ? cl[cl.length - 2] : cl[cl.length - 1]) : m.previousClose;
+    const prev = m.previousClose ?? m.chartPreviousClose;
     return { sym, nome, pais, reg, v: m.regularMarketPrice, var: prev ? (m.regularMarketPrice / prev - 1) * 100 : null, moeda: m.currency, t: m.regularMarketTime ? new Date(m.regularMarketTime * 1000).toISOString() : null };
   } catch { return { sym, nome, pais, reg, v: null }; }
 }
