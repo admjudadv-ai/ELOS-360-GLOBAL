@@ -87,6 +87,15 @@ button.d{background:none;color:var(--bad);border:1px solid var(--bad);border-rad
 .two{display:grid;grid-template-columns:1fr;gap:14px}
 @media(min-width:820px){.two{grid-template-columns:1fr 1fr}}
 </style>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#07142a">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Elos 360°">
+<script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));</script>
 </head>
 <body>
 <header>

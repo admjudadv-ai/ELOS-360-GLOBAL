@@ -1,0 +1,23 @@
+{
+  "name": "Elos 360° Global",
+  "short_name": "Elos 360°",
+  "description": "Sistema integrado e plataforma mundial: gestão, projetos, rede de negócios, programas globais e eventos.",
+  "id": "/sistema",
+  "start_url": "/sistema",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "lang": "pt-BR",
+  "background_color": "#07142a",
+  "theme_color": "#07142a",
+  "categories": ["business", "productivity", "education"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Network Global", "url": "/sistema#network", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Fazer meu cadastro", "url": "/sistema#bemvindo", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

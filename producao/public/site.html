@@ -57,6 +57,15 @@ footer{padding:40px 0;border-top:1px solid #1d3763;color:var(--muted);font-size:
 .tag{font:700 14px var(--display);letter-spacing:.18em;color:var(--silver);text-align:center;margin:0}
 @media (prefers-reduced-motion:no-preference){.btn{transition:transform .15s}.btn:hover{transform:translateY(-2px)}}
 </style>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#07142a">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Elos 360°">
+<script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));</script>
 </head>
 <body>
 <header class="top"><a class="brand" href="#inicio">ELOS <b>360°</b> GLOBAL</a><nav class="nav" aria-label="Seções"><a href="#quem">Quem somos</a><a href="#programas">Programas</a><a href="#eventos">Eventos</a><a href="#contato">Contato</a></nav></header>
