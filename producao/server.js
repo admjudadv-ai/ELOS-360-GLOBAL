@@ -396,9 +396,12 @@ async function fxLoad() {
 async function ixOne([sym, nome, pais, reg]) {
   try {
     const r = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?range=5d&interval=1d', { headers: { 'user-agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(12000) });
-    const m = (await r.json())?.chart?.result?.[0]?.meta;
+    const res0 = (await r.json())?.chart?.result?.[0], m = res0?.meta;
     if (!m || m.regularMarketPrice == null) throw 0;
-    const prev = m.chartPreviousClose ?? m.previousClose;
+    const cl = (res0.indicators?.quote?.[0]?.close || []).filter(x => x != null);
+    const ts = res0.timestamp || [], lastDay = ts.length ? new Date(ts[ts.length - 1] * 1000).toISOString().slice(0, 10) : '';
+    const today = m.regularMarketTime ? new Date(m.regularMarketTime * 1000).toISOString().slice(0, 10) : '';
+    const prev = cl.length >= 2 ? (lastDay === today ? cl[cl.length - 2] : cl[cl.length - 1]) : m.previousClose;
     return { sym, nome, pais, reg, v: m.regularMarketPrice, var: prev ? (m.regularMarketPrice / prev - 1) * 100 : null, moeda: m.currency, t: m.regularMarketTime ? new Date(m.regularMarketTime * 1000).toISOString() : null };
   } catch { return { sym, nome, pais, reg, v: null }; }
 }
@@ -413,6 +416,46 @@ app.get('/api/mercados', async (req, res) => {
   const [fx, ix] = await Promise.allSettled([fxLoad(), ixLoad()]);
   res.set('cache-control', 'public, max-age=600');
   res.json({ cambio: fx.status === 'fulfilled' ? fx.value : null, bolsas: ix.status === 'fulfilled' ? ix.value : null });
+});
+
+/* social: indicadores oficiais do Banco Mundial por país (cache diário) */
+const SOC = { t: 0, data: null, busy: null };
+const SIND = [
+  ['SI.POV.DDAY', 'pob', 'Pobreza extrema', '% da população abaixo da linha internacional de pobreza', 10, 1],
+  ['SN.ITK.DEFC.ZS', 'fome', 'Fome e subnutrição', '% da população subnutrida', 10, 1],
+  ['SH.DYN.MORT', 'mort', 'Mortalidade infantil', 'mortes de menores de 5 anos por mil nascidos vivos', 40, 1],
+  ['SH.H2O.BASW.ZS', 'agua', 'Falta de água potável', '% da população com água potável básica', 85, -1],
+  ['EG.ELC.ACCS.ZS', 'luz', 'Falta de energia elétrica', '% da população com acesso à eletricidade', 85, -1],
+  ['SE.PRM.UNER.ZS', 'esc', 'Crianças fora da escola', '% das crianças em idade escolar fora do ensino primário', 10, 1],
+  ['SL.UEM.TOTL.ZS', 'des', 'Desemprego', '% da força de trabalho', 10, 1],
+  ['SP.DYN.LE00.IN', 'vida', 'Baixa expectativa de vida', 'anos de expectativa de vida ao nascer', 65, -1]
+];
+const AFR_MENA = 'DZ EG LY MA TN DJ'.split(' '), CASIA = 'KZ KG TJ TM UZ AM AZ GE TR MN AF'.split(' '), OCE = 'AU NZ PG FJ SB VU WS TO KI FM MH PW NR TV'.split(' ');
+const cont = (c, reg) => AFR_MENA.includes(c) ? 'África' : CASIA.includes(c) ? 'Ásia' : OCE.includes(c) ? 'Oceania' :
+  ({ SSF: 'África', MEA: 'Ásia', ECS: 'Europa', LCN: 'América Latina e Caribe', NAC: 'América do Norte', EAS: 'Ásia', SAS: 'Ásia' })[reg] || null;
+async function wb(path) {
+  const r = await fetch('https://api.worldbank.org/v2/' + path + (path.includes('?') ? '&' : '?') + 'format=json&per_page=400', { signal: AbortSignal.timeout(25000) });
+  const j = await r.json(); return Array.isArray(j) ? j[1] || [] : [];
+}
+async function socLoad() {
+  const ctry = await wb('country');
+  const P = {};
+  for (const c of ctry) if (c.region && c.region.id !== 'NA' && c.iso2Code && /^[A-Z]{2}$/.test(c.iso2Code)) { const k = cont(c.iso2Code, c.region.id); if (k) P[c.iso2Code] = { c: c.iso2Code, cont: k, renda: c.incomeLevel?.value || '', v: {} }; }
+  await Promise.all(SIND.map(async ([id, k]) => {
+    const rows = await wb('country/all/indicator/' + id + '?mrnev=1');
+    for (const r of rows) { const c = r.country?.id && ctry.find(x => x.id === r.countryiso3code); const iso = c ? c.iso2Code : null; if (iso && P[iso] && r.value != null) P[iso].v[k] = [Math.round(r.value * 10) / 10, r.date]; }
+  }));
+  for (const p of Object.values(P)) {
+    p.d = SIND.map(([, k, nome, , lim, dir]) => { const x = p.v[k]; if (!x) return null; const g = dir > 0 ? x[0] / lim : (100 - x[0]) / (100 - lim); return g >= 1 ? { k, g } : null; })
+      .filter(Boolean).sort((a, b) => b.g - a.g).map(x => x.k);
+  }
+  return { atualizado: new Date().toISOString(), ind: SIND.map(([id, k, nome, un, lim, dir]) => ({ id, k, nome, un, lim, dir })), paises: P };
+}
+app.get('/api/social', async (req, res) => {
+  try {
+    if (!SOC.data || Date.now() - SOC.t > 24 * 3600e3) { SOC.busy = SOC.busy || socLoad().finally(() => { SOC.busy = null; }); SOC.data = await SOC.busy; SOC.t = Date.now(); }
+    res.set('cache-control', 'public, max-age=3600'); res.json(SOC.data);
+  } catch (e) { SOC.data ? res.json(SOC.data) : res.status(503).json({ erro: 'indisponível' }); }
 });
 
 /* inteligência artificial (opcional: só com ANTHROPIC_API_KEY) */
