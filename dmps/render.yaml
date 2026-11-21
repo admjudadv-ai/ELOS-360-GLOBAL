@@ -18,6 +18,9 @@ services:
     startCommand: cd dmps && npm start
     healthCheckPath: /health
     autoDeploy: true
+    domains:
+      - dmps.com.br
+      - www.dmps.com.br
     envVars:
       - key: NODE_VERSION
         value: "22"
