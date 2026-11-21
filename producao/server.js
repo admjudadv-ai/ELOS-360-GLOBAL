@@ -103,6 +103,11 @@ const RULES = {
   forum: { read: 'view', write: 'interact' },
   resp: { read: 'view', write: 'interact' },
   areas: { read: 'view', write: 'interact' },
+  /* Rastreamento de frotas: cada pessoa vê só o próprio pedido; comissões e contatos do parceiro só a coordenação */
+  rast: { read: 'admin', write: 'admin' },
+  'rast/{self}': { read: 'view', write: 'view' },
+  rastc: { read: 'admin', write: 'admin' },
+  rastp: { read: 'admin', write: 'admin' },
 };
 for (const c of ['prj', 'tsk', 'msg', 'evp', 'parceiros', 'jovens', 'empresas', 'vagas', 'projetos', 'avaliacoes', 'atividade', 'paises']) {
   RULES[c] = { read: 'interact', write: 'interact' };
