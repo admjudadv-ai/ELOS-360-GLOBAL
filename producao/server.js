@@ -375,6 +375,46 @@ app.get('/api/medeventos', async (req, res) => {
   res.json({ atualizado: new Date(MED.t).toISOString(), total: MED.data.length, eventos: MED.data });
 });
 
+/* mercados: câmbio diário de todas as moedas e principais bolsas do mundo */
+const MK = { fx: null, fxT: 0, ix: null, ixT: 0 };
+const IDX = [
+  ['^BVSP', 'Ibovespa', 'BR', 'América do Sul'], ['^MERV', 'Merval', 'AR', 'América do Sul'], ['^IPSA', 'S&P IPSA', 'CL', 'América do Sul'],
+  ['^GSPC', 'S&P 500', 'US', 'América do Norte'], ['^DJI', 'Dow Jones', 'US', 'América do Norte'], ['^IXIC', 'Nasdaq', 'US', 'América do Norte'], ['^GSPTSE', 'S&P/TSX', 'CA', 'América do Norte'], ['^MXX', 'IPC México', 'MX', 'América do Norte'],
+  ['^FTSE', 'FTSE 100', 'GB', 'Europa'], ['^FCHI', 'CAC 40', 'FR', 'Europa'], ['^IBEX', 'IBEX 35', 'ES', 'Europa'], ['FTSEMIB.MI', 'FTSE MIB', 'IT', 'Europa'], ['^AEX', 'AEX', 'NL', 'Europa'], ['^SSMI', 'SMI', 'CH', 'Europa'], ['PSI20.LS', 'PSI', 'PT', 'Europa'], ['^STOXX50E', 'Euro Stoxx 50', 'EU', 'Europa'],
+  ['^N225', 'Nikkei 225', 'JP', 'Ásia'], ['^HSI', 'Hang Seng', 'HK', 'Ásia'], ['000001.SS', 'Xangai Composto', 'CN', 'Ásia'], ['^BSESN', 'Sensex', 'IN', 'Ásia'], ['^KS11', 'KOSPI', 'KR', 'Ásia'], ['^STI', 'Straits Times', 'SG', 'Ásia'], ['^TASI.SR', 'Tadawul', 'SA', 'Ásia'],
+  ['^AXJO', 'S&P/ASX 200', 'AU', 'Oceania'], ['^J203.JO', 'JSE All Share', 'ZA', 'África'], ['^CASE30', 'EGX 30', 'EG', 'África'],
+  ['GC=F', 'Ouro (onça, US$)', '', 'Commodities'], ['SI=F', 'Prata (onça, US$)', '', 'Commodities'], ['HG=F', 'Cobre (libra, US$)', '', 'Commodities'], ['BZ=F', 'Petróleo Brent (barril, US$)', '', 'Commodities'], ['BTC-USD', 'Bitcoin (US$)', '', 'Commodities']
+];
+async function fxLoad() {
+  if (MK.fx && Date.now() - MK.fxT < 6 * 3600e3) return MK.fx;
+  const r = await fetch('https://open.er-api.com/v6/latest/USD', { signal: AbortSignal.timeout(15000) });
+  const j = await r.json();
+  if (j.result !== 'success') throw new Error('fx');
+  MK.fx = { base: 'USD', atualizado: j.time_last_update_utc, proximo: j.time_next_update_utc, taxas: j.rates }; MK.fxT = Date.now();
+  return MK.fx;
+}
+async function ixOne([sym, nome, pais, reg]) {
+  try {
+    const r = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?range=5d&interval=1d', { headers: { 'user-agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(12000) });
+    const m = (await r.json())?.chart?.result?.[0]?.meta;
+    if (!m || m.regularMarketPrice == null) throw 0;
+    const prev = m.chartPreviousClose ?? m.previousClose;
+    return { sym, nome, pais, reg, v: m.regularMarketPrice, var: prev ? (m.regularMarketPrice / prev - 1) * 100 : null, moeda: m.currency, t: m.regularMarketTime ? new Date(m.regularMarketTime * 1000).toISOString() : null };
+  } catch { return { sym, nome, pais, reg, v: null }; }
+}
+async function ixLoad() {
+  if (MK.ix && Date.now() - MK.ixT < 20 * 60e3) return MK.ix;
+  const out = [];
+  for (let i = 0; i < IDX.length; i += 8) out.push(...await Promise.all(IDX.slice(i, i + 8).map(ixOne)));
+  if (out.some(x => x.v != null)) { MK.ix = { atualizado: new Date().toISOString(), itens: out }; MK.ixT = Date.now(); }
+  return MK.ix || { atualizado: null, itens: out };
+}
+app.get('/api/mercados', async (req, res) => {
+  const [fx, ix] = await Promise.allSettled([fxLoad(), ixLoad()]);
+  res.set('cache-control', 'public, max-age=600');
+  res.json({ cambio: fx.status === 'fulfilled' ? fx.value : null, bolsas: ix.status === 'fulfilled' ? ix.value : null });
+});
+
 /* inteligência artificial (opcional: só com ANTHROPIC_API_KEY) */
 app.post('/api/ai', async (req, res) => {
   if (!AI_KEY) return res.status(503).json({ error: 'IA não configurada' });
