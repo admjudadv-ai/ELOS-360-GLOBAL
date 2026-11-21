@@ -108,15 +108,22 @@ const RULES = {
   'rast/{self}': { read: 'view', write: 'view' },
   rastc: { read: 'admin', write: 'admin' },
   rastp: { read: 'admin', write: 'admin' },
+  /* Pedidos de serviço (festas, engenharia, energia) e regularização de documentos: cada pessoa vê só os seus; a coordenação vê todos */
+  ped: { read: 'admin', write: 'admin' },
+  'ped/{mine}': { read: 'view', write: 'view' },
+  reg: { read: 'admin', write: 'admin' },
+  'reg/{mine}': { read: 'view', write: 'view' },
+  espec: { read: 'view', write: 'admin' },
+  filas: { read: 'admin', write: 'admin' },
 };
 for (const c of ['prj', 'tsk', 'msg', 'evp', 'parceiros', 'jovens', 'empresas', 'vagas', 'projetos', 'avaliacoes', 'atividade', 'paises']) {
   RULES[c] = { read: 'interact', write: 'interact' };
 }
-for (const m of ['fin', 'con', 'for', 'crm', 'rh', 'est', 'jur', 'doc', 'fis', 'cad', 'log', 'ati', 'eve']) {
+for (const m of ['ban', 'cob', 'fin', 'con', 'for', 'crm', 'rh', 'est', 'jur', 'doc', 'fis', 'cad', 'log', 'ati', 'eve']) {
   RULES['r_' + m] = { read: 'interact', write: 'interact' };
 }
 const NAME_RE = /^[A-Za-z0-9_-]{1,64}$/;
-const ruleFor = (col, id, uid) => (uid && id === uid && RULES[col + '/{self}']) || RULES[col] || DEFAULT_RULE;
+const ruleFor = (col, id, uid) => (uid && id === uid && RULES[col + '/{self}']) || (uid && id && id.startsWith(uid + '_') && RULES[col + '/{mine}']) || RULES[col] || DEFAULT_RULE;
 const can = (lvl, need) => LV[lvl] >= LV[need];
 
 /* ---------- sessão ---------- */
@@ -298,6 +305,11 @@ app.get('/api/c/:col', needDb, checkName, async (req, res) => {
     const { rows } = await pool.query('SELECT id,data FROM elos_docs WHERE col=$1 AND id=$2', [col, uid]);
     return res.json(rows);
   }
+  const mine = RULES[col + '/{mine}'];
+  if (uid && mine && can(req.level, mine.read)) {
+    const { rows } = await pool.query("SELECT id,data FROM elos_docs WHERE col=$1 AND left(id, length($2)) = $2 ORDER BY updated", [col, uid + '_']);
+    return res.json(rows);
+  }
   res.status(req.user ? 403 : 401).json({ error: 'sem acesso' });
 });
 app.get('/api/d/:col/:id', needDb, checkName, async (req, res) => {
@@ -336,6 +348,17 @@ app.get('/api/stream', (req, res) => {
   res.write('retry: 3000\n\n');
   const ping = setInterval(() => res.write(': ping\n\n'), 25000);
   req.on('close', () => { clearInterval(ping); clients.delete(c); });
+});
+
+/* senha por ordem de chamada: contador atômico por fila */
+app.post('/api/senha/:fila', needDb, async (req, res) => {
+  if (!req.user || !can(req.level, 'view')) return res.status(401).json({ error: 'entre na plataforma' });
+  const f = String(req.params.fila || '');
+  if (!/^[a-z0-9_-]{1,32}$/.test(f)) return res.status(400).json({ error: 'fila inválida' });
+  const { rows } = await pool.query(
+    "INSERT INTO elos_docs(col,id,data,updated) VALUES('filas',$1,jsonb_build_object('n',1),$2) ON CONFLICT (col,id) DO UPDATE SET data=jsonb_build_object('n',COALESCE((elos_docs.data->>'n')::int,0)+1), updated=EXCLUDED.updated RETURNING (data->>'n')::int AS n",
+    [f, Date.now()]);
+  res.json({ n: rows[0].n });
 });
 
 /* congressos médicos no mundo: calendário público, atualizado uma vez por dia */
@@ -427,6 +450,7 @@ const SIND = [
   ['SL.UEM.TOTL.ZS', 'des', 'Desemprego', '% da força de trabalho', 10, 1],
   ['SP.DYN.LE00.IN', 'vida', 'Baixa expectativa de vida', 'anos de expectativa de vida ao nascer', 65, -1]
 ];
+const SEXT = [['EG.FEC.RNEW.ZS', 'ren', 'Energia renovável no consumo final', '%'], ['EG.ELC.RNEW.ZS', 'renel', 'Eletricidade de fontes renováveis', '% da geração'], ['EN.GHG.CO2.PC.CE.AR5', 'co2', 'Emissões de CO₂ por habitante', 't por pessoa']];
 const AFR_MENA = 'DZ EG LY MA TN DJ'.split(' '), CASIA = 'KZ KG TJ TM UZ AM AZ GE TR MN AF'.split(' '), OCE = 'AU NZ PG FJ SB VU WS TO KI FM MH PW NR TV'.split(' ');
 const cont = (c, reg) => AFR_MENA.includes(c) ? 'África' : CASIA.includes(c) ? 'Ásia' : OCE.includes(c) ? 'Oceania' :
   ({ SSF: 'África', MEA: 'Ásia', ECS: 'Europa', LCN: 'América Latina e Caribe', NAC: 'América do Norte', EAS: 'Ásia', SAS: 'Ásia' })[reg] || null;
@@ -438,15 +462,15 @@ async function socLoad() {
   const ctry = await wb('country');
   const P = {};
   for (const c of ctry) if (c.region && c.region.id !== 'NA' && c.iso2Code && /^[A-Z]{2}$/.test(c.iso2Code)) { const k = cont(c.iso2Code, c.region.id); if (k) P[c.iso2Code] = { c: c.iso2Code, cont: k, renda: c.incomeLevel?.value || '', v: {} }; }
-  await Promise.all(SIND.map(async ([id, k]) => {
-    const rows = await wb('country/all/indicator/' + id + '?mrnev=1');
+  await Promise.all([...SIND, ...SEXT].map(async ([id, k]) => {
+    const rows = await wb('country/all/indicator/' + id + '?mrnev=1').catch(() => []);
     for (const r of rows) { const c = r.country?.id && ctry.find(x => x.id === r.countryiso3code); const iso = c ? c.iso2Code : null; if (iso && P[iso] && r.value != null) P[iso].v[k] = [Math.round(r.value * 10) / 10, r.date]; }
   }));
   for (const p of Object.values(P)) {
     p.d = SIND.map(([, k, nome, , lim, dir]) => { const x = p.v[k]; if (!x) return null; const g = dir > 0 ? x[0] / lim : (100 - x[0]) / (100 - lim); return g >= 1 ? { k, g } : null; })
       .filter(Boolean).sort((a, b) => b.g - a.g).map(x => x.k);
   }
-  return { atualizado: new Date().toISOString(), ind: SIND.map(([id, k, nome, un, lim, dir]) => ({ id, k, nome, un, lim, dir })), paises: P };
+  return { atualizado: new Date().toISOString(), ind: SIND.map(([id, k, nome, un, lim, dir]) => ({ id, k, nome, un, lim, dir })), ext: SEXT.map(([id, k, nome, un]) => ({ id, k, nome, un })), paises: P };
 }
 app.get('/api/social', async (req, res) => {
   try {
