@@ -338,6 +338,43 @@ app.get('/api/stream', (req, res) => {
   req.on('close', () => { clearInterval(ping); clients.delete(c); });
 });
 
+/* congressos médicos no mundo: calendário público, atualizado uma vez por dia */
+const MED = { t: 0, data: null, busy: null };
+const decodeHtml = s => String(s || '').replace(/&amp;/g, '&').replace(/&#39;|&apos;|&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#(\d+);/g, (m, n) => String.fromCharCode(+n)).trim();
+async function medYear(y) {
+  const r = await fetch(`https://convene.md/year/${y}/`, { headers: { 'user-agent': 'Elos360Global/1.0 (+https://elo360global.com.br)' } });
+  if (!r.ok) throw new Error('http ' + r.status);
+  const html = await r.text();
+  const cards = [...html.matchAll(/<li class="conf">([\s\S]*?)<\/li>/g)].map(m => {
+    const b = m[1];
+    return { t: decodeHtml((b.match(/<h3 class="title">[\s\S]*?>([^<]+)<\/a>/) || [])[1]), e: decodeHtml((b.match(/href="\/specialty\/[^"]+">([^<]+)<\/a>/) || [])[1]) };
+  });
+  const byName = Object.fromEntries(cards.map(c => [c.t, c.e]));
+  const ld = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+  const items = ld ? (JSON.parse(ld[1]).itemListElement || []).map(x => x.item).filter(Boolean) : [];
+  return items.map((ev, i) => {
+    const ad = (ev.location && ev.location.address) || {};
+    const esp = byName[ev.name] || (cards.length === items.length ? cards[i].e : '') || '';
+    return { n: ev.name, ini: ev.startDate, fim: ev.endDate || ev.startDate, cid: ad.addressLocality || '', pais: ad.addressCountry || '', esp, url: ev.url || '' };
+  });
+}
+async function medLoad() {
+  const out = [];
+  for (const y of [2026, 2027]) {
+    try { out.push(...await medYear(y)); } catch (e) { console.warn('[elos] eventos médicos', y, e.message); }
+  }
+  return out.filter(e => e.ini >= '2026-11-01' && e.ini <= '2027-12-31').sort((a, b) => a.ini.localeCompare(b.ini));
+}
+app.get('/api/medeventos', async (req, res) => {
+  if (!(MED.data && Date.now() - MED.t < 864e5)) {
+    if (!MED.busy) MED.busy = medLoad().then(d => { if (d.length) { MED.data = d; MED.t = Date.now(); } }).catch(() => {}).finally(() => { MED.busy = null; });
+    if (!MED.data) await MED.busy;
+  }
+  if (!MED.data) return res.status(503).json({ error: 'calendário indisponível no momento' });
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.json({ atualizado: new Date(MED.t).toISOString(), total: MED.data.length, eventos: MED.data });
+});
+
 /* inteligência artificial (opcional: só com ANTHROPIC_API_KEY) */
 app.post('/api/ai', async (req, res) => {
   if (!AI_KEY) return res.status(503).json({ error: 'IA não configurada' });
