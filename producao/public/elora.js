@@ -9,7 +9,7 @@
   var WA_TXT = 'Olá! Quero me cadastrar na Elos 360° Global.';
   var EMAIL = 'contato@elos360global.com.br';
   // perfis oficiais: preencha quando as páginas estiverem criadas (deixe '' para usar o compartilhamento)
-  var PERFIS = { instagram: '', facebook: '', linkedin: '', tiktok: '', youtube: '', x: '', threads: '' };
+  var PERFIS = { instagram: 'https://www.instagram.com/elos360global/', facebook: '', linkedin: '', tiktok: '', youtube: '', x: '', threads: '' };
 
   var D0 = document, W = window, IS_SYS = !!D0.getElementById('m') && typeof W.route === 'function';
   var SITE_URL = location.origin + (IS_SYS ? '/sistema' : '/');
@@ -86,7 +86,7 @@
     var u = encodeURIComponent(SITE_URL), tx = encodeURIComponent('Elos 360° Global — Conexões que transformam vidas');
     return [
       ['wa', 'WhatsApp · Cadastro', '#25D366', waLink(), 'wa'],
-      ['ig', 'Instagram', 'linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7)', PERFIS.instagram || 'https://www.instagram.com/', PERFIS.instagram ? '' : 'copy'],
+      ['ig', 'Instagram @elos360global', 'linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7)', PERFIS.instagram || 'https://www.instagram.com/', PERFIS.instagram ? '' : 'copy'],
       ['fb', 'Facebook', '#1877F2', PERFIS.facebook || 'https://www.facebook.com/sharer/sharer.php?u=' + u, ''],
       ['in', 'LinkedIn', '#0A66C2', PERFIS.linkedin || 'https://www.linkedin.com/sharing/share-offsite/?url=' + u, ''],
       ['x', 'X (Twitter)', '#000', PERFIS.x || 'https://twitter.com/intent/tweet?url=' + u + '&text=' + tx, ''],
