@@ -119,7 +119,7 @@
   var CSS2 = '#el-soc{position:fixed;right:12px;bottom:calc(66px + env(safe-area-inset-bottom,0px));z-index:2147482400;display:flex;flex-direction:column-reverse;align-items:flex-end;gap:8px;font:600 13px system-ui,sans-serif}' +
     '.el-sfab{width:54px;height:54px;border-radius:50%;border:0;cursor:pointer;color:#fff;background:#25D366;box-shadow:0 10px 26px #0006,0 0 0 0 #25D36688;display:grid;place-items:center;animation:el-wa 2.8s infinite;transition:transform .3s}' +
     '.el-sfab:hover{transform:scale(1.08) rotate(-6deg)}@keyframes el-wa{0%{box-shadow:0 10px 26px #0006,0 0 0 0 #25D36688}70%{box-shadow:0 10px 26px #0006,0 0 0 14px #25D36600}100%{box-shadow:0 10px 26px #0006,0 0 0 0 #25D36600}}' +
-    '#el-soc .lst{display:flex;flex-direction:column-reverse;gap:7px;align-items:flex-end}' +
+    '#el-soc{pointer-events:none}#el-soc .el-sfab{pointer-events:auto}#el-soc .lst{display:flex;flex-direction:column-reverse;gap:7px;align-items:flex-end;pointer-events:none}' +
     '#el-soc .it{display:flex;align-items:center;gap:9px;text-decoration:none;color:#0b1f3a;background:#fff;border-radius:999px;padding:5px 6px 5px 13px;box-shadow:0 6px 18px #0004;opacity:0;transform:translateX(20px) scale(.8);pointer-events:none;transition:all .3s var(--el-ease);white-space:nowrap;cursor:pointer;border:0;font:inherit}' +
     '#el-soc .it i{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:#fff;font-style:normal}' +
     '#el-soc .it:hover{transform:translateX(-4px) scale(1.04)!important}' +
@@ -163,7 +163,7 @@
 
   /* ---------- abertura ---------- */
   function splash(done) {
-    if (ss.get('el-sp') || reduce) { done(); return; }
+    if (ss.get('el-sp') || reduce || W.ELORA_NO_SPLASH) { done(); return; }
     ss.set('el-sp', '1');
     var T = 'ELOS 360°'.split('').map(function (c, i) { return '<span style="animation-delay:' + (0.55 + i * 0.07).toFixed(2) + 's">' + (c === ' ' ? '&nbsp;' : c) + '</span>'; }).join('').replace(/<span ([^>]*)>(3|6|0|°)<\/span>/g, '<span class="g" $1>$2</span>');
     var s = el('<div id="el-splash" role="dialog" aria-label="Abertura Elos 360° Global"><canvas></canvas><div class="el-sp-in">' +

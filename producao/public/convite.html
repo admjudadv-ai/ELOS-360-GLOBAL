@@ -2,36 +2,198 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Convite · Elos 360° Global</title>
-<meta name="description" content="Você está convidado(a) para a Elos 360° Global, a plataforma que conecta negócios, projetos, países e pessoas.">
-<meta property="og:title" content="O mundo inteiro em uma só plataforma · Elos 360° Global">
-<meta property="og:description" content="Negócios, projetos, países e pessoas conectados em uma só plataforma. Também como aplicativo no iPhone e no Android.">
-<meta property="og:image" content="https://elo360global.com.br/convite-email.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Convite Oficial · Elos 360° Global</title>
+<meta name="description" content="Convite oficial da Coordenadora PSP para conhecer e integrar a Elos 360° Global — gestão, assessoria, projetos, oportunidades e cooperação entre países.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Convite Oficial · Elos 360° Global">
+<meta property="og:description" content="Vossa Senhoria está convidado(a) a conhecer e integrar a Elos 360° Global — Conexões que transformam vidas.">
+<meta property="og:image" content="https://elo360global.com.br/convite-oficial.jpg">
 <meta property="og:url" content="https://elo360global.com.br/convite">
-<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#07142a"><link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#040d22"><link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Elos 360°">
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:linear-gradient(180deg,#0b1f3a,#0b3a82);color:#fff;min-height:100vh}
-main{max-width:560px;margin:0 auto;padding:28px 18px 40px;text-align:center}
-img.card{width:100%;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
-a.btn{display:block;margin:14px 0;padding:16px;border-radius:40px;background:#e8b84a;color:#0b1f3a;font-weight:700;font-size:1.1em;text-decoration:none}
-a.sec{background:transparent;border:2px solid #e8b84a;color:#fff}
-.box{background:rgba(255,255,255,.08);border-radius:14px;padding:14px 16px;text-align:left;margin-top:14px}
-.box h2{font-size:1.05em;margin:0 0 6px;color:#e8b84a}.box ol{margin:0;padding-left:20px;line-height:1.6}
-small{color:#cddcf5}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}html{background:#040d22}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#fff;background:radial-gradient(ellipse at 50% 0%,#1a4aa8 0%,#0a2560 35%,#040d22 80%) fixed;overflow-x:hidden}
+canvas#sky{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.serif{font-family:Lora,Georgia,"Times New Roman",serif}
+/* envelope */
+#env{position:fixed;inset:0;z-index:20;display:grid;place-items:center;transition:opacity .8s,visibility .8s;cursor:pointer}
+#env.gone{opacity:0;visibility:hidden}
+.eb-hint{position:absolute;bottom:calc(9vh + env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;color:#e8b84a;letter-spacing:.28em;font-size:12px;font-weight:700;animation:blink 1.8s infinite}
+@keyframes blink{50%{opacity:.35}}
+.envelope{position:relative;width:min(420px,86vw);aspect-ratio:1.45;perspective:1200px;animation:float 3.5s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-10px)}}
+.env-back,.env-front,.flap{position:absolute;inset:0;border-radius:14px}
+.env-back{background:linear-gradient(160deg,#0f2f73,#071a40);box-shadow:0 30px 80px #000a;border:1px solid #e8b84a55}
+.letter{position:absolute;left:6%;right:6%;top:8%;bottom:8%;border-radius:10px;background:linear-gradient(180deg,#fffdf6,#f3ead6);transition:transform 1s cubic-bezier(.2,.8,.2,1) .5s;display:grid;place-items:center;color:#0a2560;font:700 15px/1.3 Lora,Georgia,serif;letter-spacing:.2em;text-align:center}
+.env-front{background:linear-gradient(200deg,#0b2a6b 0%,#071a40 100%);clip-path:polygon(0 0,50% 58%,100% 0,100% 100%,0 100%);border:1px solid #e8b84a55}
+.flap{background:linear-gradient(180deg,#123a8a,#0b2a6b);clip-path:polygon(0 0,100% 0,50% 60%);transform-origin:top;transition:transform .8s cubic-bezier(.4,.1,.2,1);z-index:3;border-top:1px solid #e8b84a88}
+.seal{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);width:26%;aspect-ratio:1;border-radius:50%;z-index:4;background:radial-gradient(circle at 35% 30%,#ffe6a8,#e8b84a 45%,#a8771c);box-shadow:0 6px 20px #0008,inset 0 -4px 10px #0004;display:grid;place-items:center;transition:transform .5s,opacity .5s}
+.seal img{width:78%;height:78%;border-radius:50%;object-fit:cover;border:2px solid #fff6}
+.open .flap{transform:rotateX(180deg);z-index:1}
+.open .seal{transform:translate(-50%,-50%) scale(.2) rotate(90deg);opacity:0}
+.open .letter{transform:translateY(-62%)}
+/* convite */
+main{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:calc(28px + env(safe-area-inset-top,0px)) 16px 120px;opacity:0;transform:translateY(30px);transition:opacity 1s .2s,transform 1s .2s cubic-bezier(.2,.8,.2,1)}
+body.lido main{opacity:1;transform:none}
+.card{position:relative;border-radius:28px;padding:clamp(22px,5vw,48px);background:linear-gradient(160deg,rgba(18,52,122,.75),rgba(4,13,34,.9));border:2px solid #e8b84a;box-shadow:0 30px 90px #000a,inset 0 0 0 8px #040d22,inset 0 0 0 9px #e8b84a55;text-align:center;overflow:hidden}
+.card::before{content:'';position:absolute;inset:-40%;background:conic-gradient(from 0deg,transparent 0 70%,#e8b84a22 80%,transparent 90%);animation:spin 12s linear infinite;pointer-events:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.card>*{position:relative}
+.logo{width:clamp(110px,22vw,160px);aspect-ratio:1;border-radius:50%;border:4px solid #e8b84a;margin:0 auto;box-shadow:0 0 50px #2f86ff99,0 0 0 10px #e8b84a1f;overflow:hidden;animation:pulse 4s ease-in-out infinite}
+.logo img{width:100%;height:100%;object-fit:cover;display:block}
+@keyframes pulse{50%{box-shadow:0 0 80px #2f86ffcc,0 0 0 16px #e8b84a14}}
+.eb{margin:20px 0 0;letter-spacing:.42em;font-weight:700;font-size:clamp(11px,2.4vw,15px);color:#e8b84a;padding-left:.42em}
+h1{margin:10px 0 0;font-size:clamp(38px,8vw,72px);line-height:1.04;background:linear-gradient(180deg,#fff,#dfe7f3 55%,#b9c8e0);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{margin:6px 0 0;font-style:italic;font-size:clamp(18px,3.4vw,28px);color:#ffd98a}
+.tx{max-width:760px;margin:22px auto 0;font-size:clamp(16px,2.3vw,19px);line-height:1.6;color:#dbe7ff}
+.tx b{color:#fff}
+.ar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:28px 0 0}
+@media(max-width:700px){.ar{grid-template-columns:repeat(2,1fr)}}
+.ar a{display:block;text-decoration:none;color:#fff;border:1px solid #e8b84a55;border-radius:16px;padding:16px 8px;background:#ffffff0c;font-weight:600;font-size:14px;line-height:1.3;transition:transform .3s cubic-bezier(.2,.8,.2,1),background .3s,border-color .3s,box-shadow .3s;position:relative;overflow:hidden}
+.ar a i{display:block;font-style:normal;font-size:28px;margin-bottom:6px;transition:transform .3s}
+.ar a small{display:block;color:#9fb4d6;font-weight:500;font-size:11.5px;margin-top:4px;max-height:0;opacity:0;transition:all .3s}
+.ar a:hover,.ar a:focus-visible{transform:translateY(-6px);background:#e8b84a1c;border-color:#e8b84a;box-shadow:0 14px 34px #000a,0 0 24px #e8b84a44}
+.ar a:hover i{transform:scale(1.25) rotate(-6deg)}
+.ar a:hover small,.ar a:focus-visible small{max-height:60px;opacity:1}
+.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:30px 0 0}
+@media(max-width:700px){.acts{grid-template-columns:1fr}}
+.b{display:flex;align-items:center;justify-content:center;gap:10px;padding:16px 18px;border-radius:999px;font:700 16px system-ui,sans-serif;text-decoration:none;cursor:pointer;border:0;transition:transform .25s,box-shadow .25s;position:relative;overflow:hidden}
+.b:hover{transform:translateY(-3px)}
+.b.g{background:linear-gradient(135deg,#e8b84a,#ffd98a);color:#071a40;box-shadow:0 12px 30px #e8b84a55}
+.b.w{background:#25D366;color:#fff;box-shadow:0 12px 30px #25D36655}
+.b.o{background:transparent;color:#fff;border:2px solid #e8b84a}
+.b.g::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,#fff8 50%,transparent 70%);transform:translateX(-120%);animation:sh 3.2s 1.5s infinite}
+@keyframes sh{40%,100%{transform:translateX(120%)}}
+.row2{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:16px 0 0}
+.ch{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;background:#ffffff10;border:1px solid #ffffff2a;color:#eaf2ff;font:600 13.5px system-ui,sans-serif;text-decoration:none;cursor:pointer;transition:all .25s}
+.ch:hover{background:#ffffff22;border-color:#e8b84a;transform:translateY(-2px)}
+.qrb{display:flex;gap:22px;align-items:center;justify-content:center;margin:30px 0 0;flex-wrap:wrap;text-align:left}
+.qrb img{width:150px;height:150px;background:#fff;border-radius:16px;padding:10px;box-shadow:0 10px 30px #0008}
+.qrb p{margin:0;color:#cfe0ff;font-size:14.5px;line-height:1.6;max-width:360px}
+.qrb b{color:#fff}
+.sig{margin:30px 0 0;letter-spacing:.2em;font-size:13px;color:#e8b84a;text-transform:uppercase}
+.sig span{color:#9fb4d6;letter-spacing:.08em}
+.foot{text-align:center;color:#9fb4d6;font-size:12.5px;margin-top:18px}
+/* modal app */
+#md{position:fixed;inset:0;z-index:30;background:#040d22cc;display:none;place-items:center;padding:16px;backdrop-filter:blur(6px)}
+#md.on{display:grid}
+#md .bx{background:linear-gradient(160deg,#12347a,#071a40);border:1px solid #e8b84a88;border-radius:22px;max-width:420px;width:100%;padding:22px;color:#eaf2ff;animation:pop .35s cubic-bezier(.2,.8,.2,1)}
+@keyframes pop{from{transform:scale(.9);opacity:0}}
+#md h3{margin:0 0 10px;color:#ffd98a}#md ol{padding-left:20px;line-height:1.7;margin:0 0 14px}
+.rip{position:absolute;border-radius:50%;transform:scale(0);background:#fff7;animation:rp .6s ease-out forwards;pointer-events:none}
+@keyframes rp{to{transform:scale(4);opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
-<link rel="stylesheet" href="/elora.css?v=20261121">
+<link rel="stylesheet" href="/elora.css?v=20261121b">
 </head>
 <body>
+<canvas id="sky"></canvas>
+
+<div id="env" role="button" tabindex="0" aria-label="Abrir o convite">
+  <div class="envelope" id="envb">
+    <div class="env-back"></div>
+    <div class="letter">CONVITE<br>OFICIAL</div>
+    <div class="env-front"></div>
+    <div class="flap"></div>
+    <div class="seal"><img src="/logo-circular.png" alt=""></div>
+  </div>
+  <div class="eb-hint">TOQUE PARA ABRIR O CONVITE</div>
+</div>
+
 <main>
-<img class="card" src="/convite.png" alt="Você está convidado(a) para a Elos 360° Global">
-<a class="btn" href="/sistema">Entrar na plataforma</a>
-<a class="btn sec" href="/">Conhecer a Elos 360° Global</a>
-<div class="box"><h2>📱 Instalar no iPhone</h2><ol><li>Abra este endereço no Safari.</li><li>Toque em Compartilhar (quadrado com seta).</li><li>Escolha <b>Adicionar à Tela de Início</b>.</li></ol></div>
-<div class="box"><h2>🤖 Instalar no Android</h2><ol><li>Abra este endereço no Chrome.</li><li>Toque no menu ⋮.</li><li>Escolha <b>Instalar aplicativo</b>.</li></ol></div>
-<p><small>Coordenadora PSP · Elos 360° Global</small></p>
+  <article class="card">
+    <div class="logo"><img src="/logo-circular.png" alt="Elos 360° Global"></div>
+    <p class="eb">CONVITE OFICIAL</p>
+    <h1 class="serif">Elos 360° Global</h1>
+    <p class="sub serif">Conexões que transformam vidas</p>
+    <p class="tx">A Coordenadora PSP tem a honra de convidar <b>Vossa Senhoria</b>, sua instituição ou empresa, a conhecer e integrar a <b>Elos 360° Global</b> — o sistema integrado e plataforma que une gestão, assessoria, projetos, oportunidades e cooperação entre países, com a inteligência artificial <b>Elora</b> presente em todas as janelas.</p>
+
+    <nav class="ar" aria-label="Áreas da Elos 360° Global">
+      <a href="/sistema#s-pes"><i>🧑‍🤝‍🧑</i>Pessoas &amp; Direitos<small>Direitos com atenção a mulheres, crianças e idosos</small></a>
+      <a href="/sistema#previdencia"><i>🛡️</i>Previdência Pública e Privada<small>No Brasil e no exterior</small></a>
+      <a href="/sistema#s-ges"><i>📈</i>Gestão &amp; Consultoria<small>Finanças, tributos e negócios</small></a>
+      <a href="/sistema#s-adm"><i>⚖️</i>Administrativo &amp; Judicial<small>Contratos, compliance e documentos</small></a>
+      <a href="/sistema#network"><i>🚀</i>Projetos Nacionais e Internacionais<small>Pasta integrada de projetos</small></a>
+      <a href="/sistema#comunidade"><i>🌐</i>Network Global<small>Parcerias, negócios e investimentos</small></a>
+      <a href="/sistema#social"><i>💙</i>Elos Social<small>Ações 100% voluntariado</small></a>
+      <a href="/sistema#s-edu"><i>🎓</i>Educação &amp; Capacitação<small>Formação e conhecimento</small></a>
+    </nav>
+
+    <div class="acts">
+      <a class="b g" href="/sistema">✦ Entrar na plataforma</a>
+      <a class="b w" target="_blank" rel="noopener" href="https://wa.me/5511981653110?text=Ol%C3%A1!%20Recebi%20o%20convite%20oficial%20e%20quero%20me%20cadastrar%20na%20Elos%20360%C2%B0%20Global.">💬 Fazer meu cadastro</a>
+      <button class="b o" type="button" id="inst">📲 Instalar o aplicativo</button>
+    </div>
+    <div class="row2">
+      <button class="ch" type="button" id="elo"><span class="el-orb xs"></span> Conversar com a Elora</button>
+      <a class="ch" href="/">🌐 Conhecer o site</a>
+      <a class="ch" target="_blank" rel="noopener" href="https://www.instagram.com/elos360global/">📸 @elos360global</a>
+      <a class="ch" href="mailto:contato@elos360global.com.br?subject=Convite%20oficial%20%C2%B7%20Elos%20360%C2%B0%20Global">✉️ contato@elos360global.com.br</a>
+    </div>
+
+    <div class="qrb">
+      <img src="/convite-qr.png" alt="QR Code do convite oficial">
+      <p><b>Compartilhe este convite.</b><br>Aponte a câmera para o QR Code ou envie o link <b>elo360global.com.br/convite</b>. Cadastro pelo WhatsApp <b>(11) 98165-3110</b>.</p>
+    </div>
+    <div class="row2">
+      <button class="ch" type="button" id="shr">🔗 Compartilhar convite</button>
+      <a class="ch" href="/convite-oficial.jpg" download="convite-oficial-elos360.jpg">⬇️ Baixar convite</a>
+      <a class="ch" href="/convite-stories.jpg" download="convite-stories-elos360.jpg">⬇️ Versão Status/Stories</a>
+    </div>
+
+    <p class="sig">Coordenadora PSP <span>· Elos 360° Global</span></p>
+  </article>
+  <p class="foot">Site e aplicativo · iPhone, Android e computador · Conexão segura (HTTPS) · LGPD</p>
 </main>
-<script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}))</script>
-<script src="/elora.js?v=20261121"></script>
+
+<div id="md" role="dialog" aria-modal="true" aria-labelledby="mdt"><div class="bx">
+  <h3 id="mdt">📲 Instalar o aplicativo</h3>
+  <div id="mdb"></div>
+  <button class="b g" type="button" id="mdx" style="width:100%">Entendi</button>
+</div></div>
+
+<script>
+(function(){
+  var env=document.getElementById('env'),opened=false;
+  function abrir(){if(opened)return;opened=true;document.getElementById('envb').classList.add('open');burst();setTimeout(function(){env.classList.add('gone');document.body.classList.add('lido')},1500)}
+  env.onclick=abrir;env.onkeydown=function(e){if(e.key==='Enter'||e.key===' ')abrir()};
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches||location.hash==='#aberto')abrir();
+  /* céu de estrelas + confete dourado */
+  var cv=document.getElementById('sky'),cx=cv.getContext('2d'),S=[],C=[],d=Math.min(2,devicePixelRatio||1);
+  function rs(){cv.width=innerWidth*d;cv.height=innerHeight*d}rs();addEventListener('resize',rs);
+  for(var i=0;i<120;i++)S.push({x:Math.random(),y:Math.random(),r:Math.random()*1.5+.3,t:Math.random()*6});
+  function burst(){for(var i=0;i<140;i++){var a=Math.random()*6.28,v=Math.random()*9+4;C.push({x:innerWidth/2,y:innerHeight*.45,vx:Math.cos(a)*v,vy:Math.sin(a)*v-6,r:Math.random()*4+2,l:120,c:Math.random()<.7?'#e8b84a':(Math.random()<.5?'#ffffff':'#7cc4ff'),s:Math.random()*6})}}
+  (function f(){cx.clearRect(0,0,cv.width,cv.height);var t=Date.now()/600;
+    S.forEach(function(s){cx.globalAlpha=.4+.6*Math.abs(Math.sin(t+s.t));cx.fillStyle='#dbe7ff';cx.beginPath();cx.arc(s.x*cv.width,s.y*cv.height,s.r*d,0,6.3);cx.fill()});
+    cx.globalAlpha=1;C=C.filter(function(p){p.x+=p.vx;p.y+=p.vy;p.vy+=.25;p.vx*=.985;p.l--;p.s+=.2;cx.fillStyle=p.c;cx.save();cx.translate(p.x*d,p.y*d);cx.rotate(p.s);cx.fillRect(-p.r*d,-p.r*d/3,p.r*2*d,p.r*d/1.5);cx.restore();return p.l>0});
+    requestAnimationFrame(f)})();
+  /* aplicativo */
+  var ip=null;addEventListener('beforeinstallprompt',function(e){e.preventDefault();ip=e});
+  var md=document.getElementById('md'),mdb=document.getElementById('mdb');
+  document.getElementById('mdx').onclick=function(){md.classList.remove('on')};
+  md.onclick=function(e){if(e.target===md)md.classList.remove('on')};
+  document.getElementById('inst').onclick=function(){
+    if(matchMedia('(display-mode: standalone)').matches){mdb.innerHTML='<p>Você já está usando o aplicativo da Elos. ✓</p>';md.classList.add('on');return}
+    if(ip){ip.prompt();ip.userChoice.then(function(){ip=null});return}
+    var ios=/iphone|ipad|ipod/i.test(navigator.userAgent),and=/android/i.test(navigator.userAgent);
+    mdb.innerHTML=ios?'<ol><li>Abra este convite no <b>Safari</b>.</li><li>Toque em <b>Compartilhar</b> (quadrado com seta).</li><li>Escolha <b>Adicionar à Tela de Início</b>.</li></ol>':and?'<ol><li>Abra este convite no <b>Chrome</b>.</li><li>Toque no menu <b>⋮</b>.</li><li>Escolha <b>Instalar aplicativo</b>.</li></ol>':'<ol><li>Abra no <b>Chrome</b> ou no <b>Edge</b>.</li><li>Clique no ícone de instalar na barra de endereço.</li></ol>';
+    md.classList.add('on')};
+  /* Elora e compartilhar */
+  document.getElementById('elo').onclick=function(){if(window.elora){elora.abrir(true);elora.perguntar('Recebi o convite oficial. O que a Elos 360° Global pode fazer pela minha instituição ou empresa?')}};
+  var URL0='https://elo360global.com.br/convite',TX='Convite Oficial · Elos 360° Global — Conexões que transformam vidas.';
+  document.getElementById('shr').onclick=function(){
+    if(navigator.share){fetch('/convite-oficial.jpg').then(function(r){return r.blob()}).then(function(b){var f=new File([b],'convite-elos360.jpg',{type:'image/jpeg'});var d={title:'Convite Oficial · Elos 360° Global',text:TX+' '+URL0,url:URL0};if(navigator.canShare&&navigator.canShare({files:[f]}))d.files=[f];return navigator.share(d)}).catch(function(){})}
+    else{(navigator.clipboard?navigator.clipboard.writeText(TX+' '+URL0):Promise.reject()).then(function(){document.getElementById('shr').textContent='✓ Link copiado'}).catch(function(){prompt('Copie o link do convite:',URL0)})}};
+  /* ondas nos botões */
+  document.addEventListener('pointerdown',function(e){var b=e.target.closest('.b,.ch,.ar a');if(!b)return;var r=b.getBoundingClientRect(),s=document.createElement('span'),z=Math.max(r.width,r.height);s.className='rip';s.style.cssText='width:'+z+'px;height:'+z+'px;left:'+(e.clientX-r.left-z/2)+'px;top:'+(e.clientY-r.top-z/2)+'px';b.appendChild(s);setTimeout(function(){s.remove()},650)});
+  if('serviceWorker' in navigator)addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){})});
+})();
+</script>
+<script>window.ELORA_NO_SPLASH=true;</script>
+<script src="/elora.js?v=20261121b"></script>
 </body>
 </html>
