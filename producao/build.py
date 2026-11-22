@@ -24,9 +24,9 @@ def inject(html: str) -> str:
     if 'manifest.webmanifest' not in html:
         html = html.replace('</head>', PWA + '</head>', 1)
     if '/elora.js' not in html:
-        html = html.replace('</head>', '<link rel="stylesheet" href="/elora.css?v=20261121b">\n</head>', 1)
+        html = html.replace('</head>', '<link rel="stylesheet" href="/elora.css?v=20261121c">\n</head>', 1)
         i = html.rfind('</body>')
-        html = html[:i] + '<script src="/elora.js?v=20261121b"></script>\n' + html[i:]
+        html = html[:i] + '<script src="/elos-i18n.js?v=20261121c"></script>\n<script src="/elora.js?v=20261121c"></script>\n' + html[i:]
     html = html.replace('sua conta Claude', 'sua conta Elos')
     html = html.replace('href="index.html#', 'href="/sistema#')
     html = html.replace(

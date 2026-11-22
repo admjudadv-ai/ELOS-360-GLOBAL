@@ -131,8 +131,8 @@
     '.el-toast.on{transform:translate(-50%,0);opacity:1}' +
     '.el-pv{position:fixed;z-index:2147482600;max-width:270px;background:linear-gradient(150deg,#0b2a6b,#071a40);color:#eaf2ff;border:1px solid #e8b84a66;border-radius:14px;padding:10px 12px;font:13px/1.4 system-ui,sans-serif;box-shadow:0 16px 40px #0007;opacity:0;transform:translateY(6px) scale(.97);transition:opacity .18s,transform .18s;pointer-events:none}' +
     '.el-pv.on{opacity:1;transform:none}.el-pv b{display:flex;gap:7px;align-items:center;font-size:14px}.el-pv b i{font-style:normal;font-size:18px}.el-pv small{display:block;color:#b9cdf0;margin-top:3px}.el-pv em{display:block;font-style:normal;margin-top:6px;color:#e8b84a;font-size:11px;letter-spacing:.1em;text-transform:uppercase}' +
-    'body.e3-sys main a:not(.tile):not(.btn):not(.card):not(.chip):not(.hs):not(.el-go):not(.pc):not(.who){background:linear-gradient(90deg,var(--gd),var(--ac)) 0 100%/0 2px no-repeat;text-decoration:none;transition:background-size .35s var(--el-ease),color .2s;padding-bottom:1px}' +
-    'body.e3-sys main a:not(.tile):not(.btn):not(.card):not(.chip):not(.hs):not(.el-go):not(.pc):not(.who):hover{background-size:100% 2px;color:var(--ac2)}' +
+    'body.e3-sys main a:not(.tile):not(.btn):not(.card):not(.chip):not(.hs):not(.el-go):not(.pc):not(.who):not(.nl){background:linear-gradient(90deg,var(--gd),var(--ac)) 0 100%/0 2px no-repeat;text-decoration:none;transition:background-size .35s var(--el-ease),color .2s;padding-bottom:1px}' +
+    'body.e3-sys main a:not(.tile):not(.btn):not(.card):not(.chip):not(.hs):not(.el-go):not(.pc):not(.who):not(.nl):hover{background-size:100% 2px;color:var(--ac2)}' +
     'body.e3-sys .chip{transition:all .2s;text-decoration:none}body.e3-sys a.chip:hover{border-color:var(--gd);background:color-mix(in srgb,var(--gd) 18%,var(--bg));transform:translateY(-1px)}' +
     'a.el-ext::after{content:"↗";display:inline-block;margin-left:3px;font-size:.85em;transition:transform .2s}a.el-ext:hover::after{transform:translate(2px,-2px)}' +
     '@media(max-width:560px){#el-soc{right:10px}.el-sfab{width:50px;height:50px}#el-soc .tip{display:none}}';
@@ -237,7 +237,7 @@
       '<button type="button" class="el-ib" data-a="max" title="Ampliar" aria-label="Ampliar">⤢</button>' +
       '<button type="button" class="el-ib" data-a="novo" title="Nova conversa" aria-label="Nova conversa">↺</button>' +
       '<button type="button" class="el-ib" data-a="x" title="Fechar" aria-label="Fechar">✕</button></div></div>' +
-      '<div class="el-ctx">📍 Nesta janela: <b></b></div><div class="el-bd" aria-live="polite"></div><div class="el-sg"></div>' +
+      '<div class="el-ctx">📍 Nesta janela: <b></b></div><div class="el-bd" aria-live="polite" data-no-tr></div><div class="el-sg"></div>' +
       '<form class="el-ft"><button type="button" class="el-ib el-mic" title="Falar com a Elora" aria-label="Falar por voz">🎙️</button><input placeholder="Pergunte à Elora ou peça para abrir uma janela…" aria-label="Mensagem para a Elora" autocomplete="off"><button class="el-send" aria-label="Enviar">➤</button></form>' +
       '</section></div>');
     D0.body.appendChild(wR);
@@ -266,7 +266,7 @@
   }
   function paint() {
     if (!bodyR) return;
-    bodyR.innerHTML = H.map(function (m) { return '<div class="el-m ' + (m.r === 'u' ? 'u' : 'a') + '">' + (m.r === 'u' ? esc(m.t) : md(m.t)) + '</div>'; }).join('') + (BUSY ? '<div class="el-m a"><span class="el-typing"><i></i><i></i><i></i></span></div>' : '');
+    bodyR.innerHTML = H.map(function (m) { return '<div class="el-m ' + (m.r === 'u' ? 'u' : 'a') + '">' + (m.r === 'u' ? esc(m.t) : (m.html || md(m.t))) + '</div>'; }).join('') + (BUSY ? '<div class="el-m a"><span class="el-typing"><i></i><i></i><i></i></span></div>' : '');
     bodyR.scrollTop = bodyR.scrollHeight;
     ctxR.textContent = title();
     sgR.innerHTML = sugs().map(function (s) { return '<button type="button">' + esc(s) + '</button>'; }).join('');
@@ -300,14 +300,14 @@
       return o;
     }, null);
     var jan = Object.keys(WIN).map(function (id) { return (id || 'inicio') + ':' + WIN[id].n; }).join('; ');
-    return { janela: location.hash.slice(1) || 'inicio', titulo: title(), texto: txt, conexoes: rel, dados: dados, janelas: jan.slice(0, 5000), pagina: IS_SYS ? 'sistema' : 'site' };
+    return { janela: location.hash.slice(1) || 'inicio', titulo: title(), texto: txt, conexoes: rel, dados: dados, janelas: jan.slice(0, 5000), pagina: IS_SYS ? 'sistema' : 'site', idioma: langNow() };
   }
 
   function ask(q) {
     if (BUSY) return;
     openP(true);
     H.push({ r: 'u', t: q }); BUSY = true; saveH(); paint();
-    var msgs = H.slice(-12).map(function (m) { return { role: m.r === 'u' ? 'user' : 'assistant', content: m.t }; });
+    var msgs = H.filter(function (m) { return m.t; }).slice(-12).map(function (m) { return { role: m.r === 'u' ? 'user' : 'assistant', content: m.t }; });
     while (msgs.length && msgs[0].role !== 'user') msgs.shift();
     var done = function (t) { BUSY = false; H.push({ r: 'a', t: t }); saveH(); paint(); speak(t); };
     if (AI_ON === false) { done(local(q)); return; }
@@ -336,12 +336,13 @@
   }
 
   /* voz: ouvir e falar */
+  function langNow() { var l = W.ELOS_LANG || 'pt'; return l === 'pt' ? 'pt-BR' : l; }
   function speak(t) {
     if (!VOICE || !W.speechSynthesis) return;
     var s = String(t).replace(/\[\[[^\]]*\]\]/g, '').replace(/[*#_>`]/g, '').slice(0, 900);
     speechSynthesis.cancel();
-    var u = new SpeechSynthesisUtterance(s); u.lang = 'pt-BR'; u.rate = 1.03; u.pitch = 1.05;
-    var v = speechSynthesis.getVoices().filter(function (x) { return /^pt/i.test(x.lang); });
+    var u = new SpeechSynthesisUtterance(s); var L = langNow(), lb = L.split('-')[0]; u.lang = L; u.rate = 1.03; u.pitch = 1.05;
+    var v = speechSynthesis.getVoices().filter(function (x) { return x.lang && x.lang.toLowerCase().indexOf(lb) === 0; });
     u.voice = v.find(function (x) { return /female|feminina|luciana|francisca|maria|vit[oó]ria|google portugu/i.test(x.name); }) || v[0] || null;
     speechSynthesis.speak(u);
   }
@@ -351,7 +352,7 @@
     var r = null;
     b.onclick = function () {
       if (r) { r.stop(); return; }
-      r = new SR(); r.lang = 'pt-BR'; r.interimResults = true;
+      r = new SR(); r.lang = langNow(); r.interimResults = true;
       b.classList.add('rec'); inR.placeholder = 'Ouvindo… pode falar';
       r.onresult = function (e) { var s = ''; for (var i = 0; i < e.results.length; i++) s += e.results[i][0].transcript; inR.value = s; if (e.results[e.results.length - 1].isFinal) { var v = inR.value.trim(); inR.value = ''; if (v) ask(v); } };
       r.onend = r.onerror = function () { b.classList.remove('rec'); inR.placeholder = 'Pergunte à Elora ou peça para abrir uma janela…'; r = null; };
@@ -417,6 +418,98 @@
     W.addEventListener('scroll', function () { pv.classList.remove('on'); }, { passive: true });
   }
 
+
+  /* ---------- Elora no WhatsApp (coordenação) ---------- */
+  var OWNER = false;
+  function api(m, u, b) { return fetch(u, { method: m, credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-Elos': '1' }, body: b ? JSON.stringify(b) : undefined }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || r.status); return j; }); }); }
+  function ownerUI() {
+    var t = wR.querySelector('.tools');
+    var b = el('<button type="button" class="el-ib" title="Elora no meu WhatsApp" aria-label="Elora no WhatsApp" style="color:#25D366">' + svg('wa', 16) + '</button>');
+    b.onclick = waPanel; t.insertBefore(b, t.firstChild);
+    SUG[''] = ['Elora no meu WhatsApp'].concat(SUG[''] || []);
+  }
+  function waPanel() {
+    openP(true);
+    api('GET', '/api/elora/whatsapp').then(function (s) {
+      var st = s.configurado ? (s.avisos ? '🟢 Ativa: a Elora avisa você a cada ' + s.minutos + ' min sobre toda movimentação e responde no WhatsApp.' : '⏸️ Avisos pausados.') : '🟡 Falta ligar a conta oficial do WhatsApp Business (Meta) no servidor. Enquanto isso, use o resumo por toque abaixo.';
+      var h = '<p><strong>Elora no seu WhatsApp</strong></p><p>' + esc(st) + '</p>' + (s.numero ? '<p>Número que recebe os avisos: <strong>' + esc(s.numeroFmt) + '</strong></p>' : '') +
+        '<div class="acts">' + (s.configurado ? '<button type="button" class="el-go" data-wa="' + (s.avisos ? 'pausar' : 'ativar') + '">' + (s.avisos ? '⏸️ Pausar avisos' : '▶️ Ativar avisos') + '</button><button type="button" class="el-go" data-wa="teste">📨 Enviar teste agora</button>' : '') +
+        '<button type="button" class="el-go" data-wa="resumo">' + svg('wa', 14) + ' Resumo agora no meu WhatsApp</button></div>';
+      H.push({ r: 'a', t: '' , html: h }); saveH(); paint();
+    }).catch(function () { toast('Entre com o seu login de coordenação para configurar.'); });
+  }
+  D0.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-wa]'); if (!b) return;
+    var a = b.getAttribute('data-wa');
+    if (a === 'resumo') {
+      api('GET', '/api/elora/resumo').then(function (r) { W.open('https://wa.me/' + r.numero + '?text=' + encodeURIComponent(r.texto), '_blank', 'noopener'); }).catch(function () { toast('Não foi possível gerar o resumo agora.'); });
+      return;
+    }
+    api('POST', '/api/elora/whatsapp', { acao: a }).then(function (r) { toast(r.msg || 'Pronto'); if (a !== 'teste') { H.pop(); waPanel(); } }).catch(function (x) { toast('⚠️ ' + x.message); });
+  });
+
+  /* ---------- WhatsApp em cada projeto: encaminhar para parceiros ---------- */
+  var PJSTYLE = '.el-pj{border:2px solid #25D36655!important;background:linear-gradient(160deg,color-mix(in srgb,#25D366 7%,var(--card)),var(--card))!important}.el-pj h3{display:flex;align-items:center;gap:8px}.el-pj .pl{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}' +
+    '.el-pj .pl span{display:inline-flex;align-items:center;gap:0;border-radius:999px;overflow:hidden;border:1px solid #25D36688}.el-pj .pl a{display:inline-flex;align-items:center;gap:6px;background:#25D366;color:#fff;text-decoration:none;padding:7px 12px;font-weight:700;font-size:13px}.el-pj .pl a:hover{background:#1ebe5b}.el-pj .pl button{border:0;background:var(--bg);color:var(--bad);padding:7px 10px;cursor:pointer}' +
+    '.el-pj textarea{min-height:150px;font-size:14px}.el-pj .wab{background:#25D366!important;box-shadow:0 6px 18px #25D36655!important}.el-pj .lk{font-size:12.5px;word-break:break-all}';
+  function projWA() {
+    var st = D0.createElement('style'); st.textContent = PJSTYLE; D0.head.appendChild(st);
+    var m = D0.getElementById('m');
+    new MutationObserver(function () { pjCard(); }).observe(m, { childList: true });
+    W.addEventListener('hashchange', function () { setTimeout(pjCard, 30); });
+    pjCard();
+  }
+  var PJMSG = {};
+  function pjText(p) {
+    var v = safe(function () { return pct(p._id); }, 0), base = location.origin.indexOf('localhost') >= 0 ? 'https://elo360global.com.br' : location.origin;
+    var set = (p.setores || []).map(function (s) { return safe(function () { return SX[s][1]; }, s); }).join(', ');
+    return '✨ *' + p.nome + '*\n' + (p.desc ? p.desc + '\n' : '') + '\n' + (p.pais ? '📍 ' + p.pais + '\n' : '') + (p.prazo ? '⏳ Prazo: ' + p.prazo.split('-').reverse().join('/') + '\n' : '') + (set ? '🏢 Setores: ' + set + '\n' : '') + '📊 Andamento: ' + v + '%\n' +
+      (p.pub ? '\n🔗 Conheça o projeto: ' + base + '/projeto/' + p.pub + '\n' : '') + '\nCoordenadora PSP · Elos 360° Global\n' + base;
+  }
+  function telOk(t) { t = String(t || '').replace(/\D/g, ''); if (t.length === 10 || t.length === 11) t = '55' + t; return t.length >= 11 && t.length <= 15 ? t : ''; }
+  function pjCard() {
+    var h = decodeURIComponent(location.hash.slice(1)); if (h.indexOf('p-') !== 0) return;
+    var id = h.slice(2), m = D0.getElementById('m'), p = safe(function () { return prj(id); }, null);
+    if (!p || m.querySelector('#el-pj')) return;
+    var two = m.querySelector('.two > div:last-child') || m;
+    var parc = Array.isArray(p.parceirosWA) ? p.parceirosWA : [];
+    var msg = PJMSG[id] || pjText(p);
+    var c = el('<div class="card el-pj" id="el-pj"><h3>' + svg('wa', 20) + ' Encaminhar projeto pelo WhatsApp</h3>' +
+      '<p class="mut" style="margin:0 0 6px">Envie este projeto direto para os parceiros. A mensagem abaixo pode ser editada antes de enviar.</p>' +
+      '<div class="pl">' + (parc.length ? parc.map(function (x, i) { return '<span><a class="nl" href="https://wa.me/' + x.tel + '?text=__T__" target="_blank" rel="noopener" data-pi="' + i + '">' + svg('wa', 14) + ' ' + esc(x.n) + '</a><button type="button" data-rm="' + i + '" title="Remover parceiro" aria-label="Remover ' + esc(x.n) + '">✕</button></span>'; }).join('') : '<small class="mut">Nenhum parceiro salvo neste projeto ainda.</small>') + '</div>' +
+      '<form class="pf" style="margin-bottom:10px"><label>Nome do parceiro<input name="n" required></label><label>WhatsApp com DDD (e código do país, se for do exterior)<input name="t" inputmode="tel" required placeholder="11 98765-4321"></label><button class="p">＋ Salvar parceiro</button></form>' +
+      '<label class="full">Mensagem<textarea class="tx">' + esc(msg) + '</textarea></label>' +
+      '<div class="row" style="margin-top:8px"><a class="btn wab" target="_blank" rel="noopener" data-any>' + svg('wa', 16) + ' Escolher contato no WhatsApp</a>' +
+      '<button type="button" class="s" data-ia><span class="el-orb xs" style="vertical-align:middle"></span> Elora escreve a apresentação</button>' +
+      '<button type="button" class="s" data-pub>' + (p.pub ? '🔒 Desativar link público' : '🔗 Criar link público do projeto') + '</button></div>' +
+      (p.pub ? '<p class="lk mut">Link público (só o resumo, sem dados internos): <a href="/projeto/' + esc(p.pub) + '" target="_blank" rel="noopener">' + esc(location.origin + '/projeto/' + p.pub) + '</a></p>' : '') +
+      '</div>');
+    two.insertBefore(c, two.firstChild);
+    var tx = c.querySelector('.tx');
+    function links() { var t = encodeURIComponent(tx.value); c.querySelectorAll('[data-pi]').forEach(function (a) { a.href = a.href.split('?')[0] + '?text=' + t; }); c.querySelector('[data-any]').href = 'https://wa.me/?text=' + t; }
+    links(); tx.oninput = function () { PJMSG[id] = tx.value; links(); };
+    c.addEventListener('click', function (e) {
+      var a = e.target.closest('[data-pi],[data-any]'); if (a) { links(); toast('💬 Abrindo o WhatsApp' + (a.dataset.pi != null ? ' de ' + parc[a.dataset.pi].n : '')); safe(function () { log(id, 'encaminhou o projeto pelo WhatsApp' + (a.dataset.pi != null ? ' para ' + parc[a.dataset.pi].n : '')); }); }
+      var r = e.target.closest('[data-rm]'); if (r) { var np = parc.slice(); np.splice(+r.dataset.rm, 1); upd('prj', id, { parceirosWA: np }); }
+      if (e.target.closest('[data-pub]')) {
+        var tok = p.pub ? '' : (Date.now().toString(36) + Math.random().toString(36).slice(2, 10));
+        upd('prj', id, { pub: tok }); delete PJMSG[id];
+        toast(tok ? '🔗 Link público criado' : '🔒 Link público desativado');
+      }
+      if (e.target.closest('[data-ia]')) {
+        var b = e.target.closest('[data-ia]'); b.disabled = true; tx.value = 'A Elora está escrevendo…';
+        fetch('/api/elora', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-Elos': '1' }, body: JSON.stringify({ messages: [{ role: 'user', content: 'Escreva uma mensagem de WhatsApp, elegante e de nível internacional, apresentando este projeto a um parceiro estratégico e convidando para uma conversa. Até 900 caracteres, com negrito no estilo do WhatsApp (*texto*) e poucos emojis. Não use botões [[...]]. Termine com a assinatura "Coordenadora PSP · Elos 360° Global" e, se houver, o link público. Dados: ' + pjText(p) }], ctx: ctx() }) })
+          .then(function (r) { return r.json(); }).then(function (j) { tx.value = (j.text || pjText(p)).replace(/\[\[[^\]]*\]\]/g, '').trim(); }).catch(function () { tx.value = pjText(p); })
+          .then(function () { PJMSG[id] = tx.value; links(); b.disabled = false; });
+      }
+    });
+    c.querySelector('.pf').onsubmit = function (e) {
+      e.preventDefault(); var f = new FormData(e.target), t = telOk(f.get('t')), n = String(f.get('n') || '').trim().slice(0, 60);
+      if (!t) { toast('⚠️ Confira o número: DDD + número, ou código do país + número.'); return; }
+      upd('prj', id, { parceirosWA: parc.concat([{ n: n, tel: t }]) }); toast('✓ ' + n + ' salvo neste projeto');
+    };
+  }
+
   /* ---------- botões de IA já existentes passam a ser da Elora ---------- */
   function rename(root) {
     (root || D0).querySelectorAll('button').forEach(function (b) {
@@ -439,7 +532,9 @@
       enter();
     }
     fetch('/api/me', { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (j) { if (j && j.elora === false) AI_ON = false; }).catch(function () {});
-    W.elora = { abrir: openP, perguntar: ask, ir: go };
+    fetch('/api/me', { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (u) { if (u && u.isOwner) { OWNER = true; ownerUI(); } }).catch(function () {});
+    if (IS_SYS) projWA();
+    W.elora = { abrir: openP, perguntar: ask, ir: go, whatsapp: waPanel };
   }
   function boot() { splash(function () {}); start(); }
   if (D0.readyState === 'loading') D0.addEventListener('DOMContentLoaded', boot); else boot();
