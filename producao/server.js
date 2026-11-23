@@ -997,9 +997,10 @@ app.get('/api/sol', onlyOwner, async (req, res) => {
     const { rows } = await pool.query('SELECT col,id,data,updated FROM elos_docs WHERE col = ANY($1)', [cols]);
     const { rows: S } = await pool.query("SELECT id,data FROM elos_docs WHERE col='sol'");
     const map = new Map(S.map(x => [x.id, x.data]));
+    const { rows: US } = await pool.query('SELECT id,name,email FROM elos_users'); const um = new Map(US.map(u => [u.id, u]));
     const itens = rows.filter(x => !(x.col === 'ped' && /^adv_/.test(x.id))).map(x => {
       const s = map.get(solId(x.col, x.id)) || { st: solStDe(x.col, x.data), setor: solSetor(x.col, x.data), hist: [], msgs: [], antigo: 1 };
-      const rs = solResumo(x.col, x.id, x.data); if (!rs.nome && s.nome) rs.nome = s.nome; if (!rs.contato && s.email) rs.contato = s.email;
+      const rs = solResumo(x.col, x.id, x.data); if (!rs.nome && s.nome) rs.nome = s.nome; if (!rs.contato && s.email) rs.contato = s.email; const uu = um.get(solDono(x.col, x.id, x.data)); if (uu) { if (!rs.nome) rs.nome = uu.name || ''; if (!rs.contato) rs.contato = uu.email || ''; }
       return Object.assign({ col: x.col, id: x.id, tipo: SOLC[x.col], up: +x.updated || 0 }, rs, { st: SOL_ST.includes(s.st) ? s.st : 'Novo', setor: s.setor, hist: s.hist || [], msgs: s.msgs || [], nova: !!s.nova, crm: !!s.crm, antigo: !!s.antigo });
     }).sort((a, b) => (b.t || b.up) - (a.t || a.up));
     res.json({ itens, setores: SOL_SET, situacoes: SOL_ST });
