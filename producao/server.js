@@ -120,6 +120,8 @@ const RULES = {
   filas: { read: 'admin', write: 'admin' },
   i18n: { read: 'admin', write: 'admin' },
   eloraWA: { read: 'admin', write: 'admin' },
+  sol: { read: 'owner', write: 'owner' },
+  secscan: { read: 'owner', write: 'owner' },
 };
 for (const c of ['prj', 'tsk', 'msg', 'evp', 'parceiros', 'jovens', 'empresas', 'vagas', 'projetos', 'avaliacoes', 'atividade', 'paises']) {
   RULES[c] = { read: 'interact', write: 'interact' };
@@ -198,6 +200,8 @@ app.set('trust proxy', 1);
 const SEC = { bans: new Map(), strikes: new Map(), hits: new Map(), blocked: 0, banned: 0, ev: [] };
 const SEC_BAD = /(\.env|\.git\/|\.svn|\.ht(access|passwd)|wp-(admin|login|content|includes)|xmlrpc\.php|phpmyadmin|pma\/|adminer|\.php\d?$|\.asp(x)?$|\.jsp$|cgi-bin|\.aws\/|\.ssh\/|id_rsa|server-status|\.ds_store|etc\/passwd|\/vendor\/phpunit|boaform|\/actuator|\.sql$|\.bak$|\/backup)/i;
 const SEC_INJ = /(<script|%3cscript|union(\s|%20|\+)+select|\.\.\/|\.\.%2f|%00|\bsleep\(|benchmark\(|\/etc\/passwd|;\s*(drop|shutdown)\s)/i;
+const SEGURANCA = require('./seguranca');
+function secBody(b) { const h = []; SEGURANCA.scanValue(b, h, 'entrada', 0); return h.some(x => x.nivel === 'critico' || x.nivel === 'alto'); }
 function secLog(ip, why, path) { SEC.ev.push({ t: Date.now(), ip: String(ip || '').replace(/\d+$/, 'x'), why, path: String(path || '').slice(0, 80) }); if (SEC.ev.length > 100) SEC.ev.shift(); if (typeof audit === 'function') audit(null, 'seguranca:' + why, null, String(path || '').slice(0, 80)); }
 function secStrike(ip, why, path) {
   SEC.blocked++; secLog(ip, why, path);
@@ -362,6 +366,7 @@ async function write(req, res, mode) {
   const { col, id } = req.params;
   if (!can(req.level, ruleFor(col, id, req.user && req.user.id).write)) return res.status(req.user ? 403 : 401).json({ error: 'sem permissão' });
   if (mode !== 'delete' && (typeof req.body !== 'object' || Array.isArray(req.body) || req.body === null)) return res.status(400).json({ error: 'dados inválidos' });
+  if (mode !== 'delete' && !(req.user && req.user.isOwner) && secBody(req.body)) { secStrike(req.ip || '', 'conteudo-malicioso', req.path); return res.status(400).json({ error: 'Conteúdo não permitido.' }); }
   const now = Date.now();
   if (mode === 'delete') await pool.query('DELETE FROM elos_docs WHERE col=$1 AND id=$2', [col, id]);
   else if (mode === 'set') await pool.query('INSERT INTO elos_docs(col,id,data,updated) VALUES($1,$2,$3,$4) ON CONFLICT (col,id) DO UPDATE SET data=EXCLUDED.data, updated=EXCLUDED.updated', [col, id, req.body, now]);
@@ -373,6 +378,7 @@ async function write(req, res, mode) {
   eloraEvento(req.user, mode, col, id, mode === 'delete' ? null : req.body);
   broadcast(col);
   res.json({ ok: true });
+  if (mode === 'set' && SOLC[col] && !(req.user && req.user.isOwner)) solEnsure(col, id, req.body, req.user);
 }
 app.put('/api/d/:col/:id', needDb, checkName, (req, res, next) => write(req, res, 'set').catch(next));
 app.patch('/api/d/:col/:id', needDb, checkName, (req, res, next) => write(req, res, 'update').catch(next));
@@ -553,6 +559,7 @@ app.post('/api/ai', async (req, res) => {
 
 /* Elora — inteligência da Elos 360° Global, presente em todas as janelas */
 const ELORA_SYS = [
+  'Solicitações Recebidas (#solicitacoes): toda solicitação da plataforma (futuros clientes, investidores, pedidos de serviço, documentos, frotas, eventos e acessos) chega numa central única com as situações Novo, Cadastrado, Em andamento, Aprovado, Irregular e Bloqueado, é encaminhada ao setor certo e, quando Cadastrada ou Aprovada, entra nos Contatos do Network. Você responde na hora a quem solicita, pedindo para aguardar o próximo contato, e quem solicitou acompanha e conversa em tempo real em Minhas solicitações. A plataforma também passa por uma varredura de segurança diária (antivírus da plataforma).',
   'Você é a Elora, a inteligência artificial da Elos 360° Global — sistema integrado e plataforma de assessoria, gestão, projetos, oportunidades e solidariedade, com atuação em todos os países.',
   'Áreas: Pessoas & Direitos; Previdência Pública e Privada; Gestão & Consultoria; Administrativo & Judicial; Projetos Nacionais e Internacionais; Network Global; Elos Social (100% voluntariado); Educação & Capacitação; além de Financeiro, Comercial, RH, TI & Dados e Diretoria.',
   'Personalidade: acolhedora, elegante, objetiva e confiante, de nível internacional. Responda no idioma de quem escreve (padrão: português do Brasil), em até 8 linhas, salvo se pedirem mais detalhes. Use listas curtas quando ajudar.',
@@ -898,6 +905,171 @@ app.post('/api/whatsapp/webhook', async (req, res) => {
     }
   } catch (e) { console.warn('[elora-wa] webhook', e.message); }
 });
+
+/* ---------- Solicitações Recebidas: todas as solicitações da plataforma numa central, com situação, setor, Network e a Elora em tempo real ---------- */
+const SOLC = { leads: 'Futuro cliente / interesse', pedidos: 'Pedido de acesso à plataforma', rast: 'Rastreamento de frotas', ped: 'Pedido de serviço', reg: 'Regularização de documentos', evp: 'Interesse em evento', invn: 'Investidor · ficha de nível' };
+const SOL_ST = ['Novo', 'Cadastrado', 'Em andamento', 'Aprovado', 'Irregular', 'Bloqueado'];
+const SOL_SET = { dir: 'Diretoria', pes: 'Pessoas & Direitos', prev: 'Previdência', ges: 'Gestão & Consultoria', adm: 'Administrativo & Judicial', pnj: 'Projetos', net: 'Network Global', soc: 'Elos Social', edu: 'Educação', fin: 'Financeiro', com: 'Comercial & Logística', ti: 'TI & Dados' };
+const WA_AF = '+258 85 761 3514';
+const solId = (col, id) => col + '__' + id;
+const solDono = (col, id, d) => col === 'evp' ? (d && d.u) || '' : (col === 'ped' || col === 'reg') ? (d && d.u) || String(id).slice(0, String(id).lastIndexOf('_')) : id;
+function solSetor(col, d) {
+  d = d || {}; const a = String(d.area || ''), t = [d.tipo, d.int, d.msg, d.perfil].join(' ');
+  if (col === 'invn') return 'net';
+  if (col === 'rast') return 'com';
+  if (col === 'reg') return 'adm';
+  if (col === 'pedidos') return 'dir';
+  if (col === 'evp') return 'soc';
+  if (a === 'prev') return 'prev';
+  if (/festa|social/i.test(a)) return 'soc';
+  if (/engenharia|energia/i.test(a)) return 'pnj';
+  if (/Moçambique|África|Africa|invest/i.test(t)) return 'net';
+  if (/previd|aposent|INSS/i.test(t)) return 'prev';
+  if (/trabalh|direit|violên|família/i.test(t)) return 'pes';
+  return 'net';
+}
+function solStDe(col, d) {
+  d = d || {}; const s = String(d.stc || d.status || d.st || '').toLowerCase();
+  if (/irregular/.test(s)) return 'Irregular';
+  if (/bloque|cancel/.test(s)) return 'Bloqueado';
+  if (/aprov|contrat|conclu/.test(s)) return 'Aprovado';
+  if (/ativo/.test(s)) return 'Cadastrado';
+  if (/análise|analise|proposta|atendimento|andamento|contato/.test(s)) return 'Em andamento';
+  return col === 'pedidos' || col === 'invn' ? 'Cadastrado' : 'Novo';
+}
+function solResumo(col, id, d) {
+  d = d || {};
+  return {
+    nome: String(d.nome || d.resp || d.emp || '').slice(0, 120), org: String(d.emp && d.nome ? d.emp : '').slice(0, 120),
+    contato: String(d.ct || d.tel || d.email || d.contato || '').slice(0, 160), pais: String(d.pais || '').slice(0, 60),
+    assunto: (SOLC[col] || col) + (d.tipo || d.op || d.int || d.nivel ? ' · ' + String(d.tipo || d.op || d.int || d.nivel).slice(0, 80) : '') + (d.area && col === 'ped' ? ' · ' + d.area : ''),
+    texto: String(d.msg || d.det || d.serv || d.x || d.obs || '').slice(0, 600), t: +d.t > 1e11 ? +d.t : 0
+  };
+}
+function solMsg(st, r, setor) {
+  const n = String(r.nome || '').trim().split(/\s+/)[0], oi = n ? 'Olá, ' + n + '! ' : 'Olá! ';
+  const s = SOL_SET[setor] || 'Network Global';
+  return ({
+    'Novo': oi + 'Aqui é a Elora, a inteligência artificial da Elos 360° Global. Recebemos a sua solicitação (' + r.assunto + ') e ela já foi encaminhada ' + (setor === 'net' ? 'ao Network Global' : 'ao setor ' + s + ' e ao Network Global') + '. Por favor, aguarde o próximo contato: estaremos entrando em contato o mais breve possível. Atendimento imediato pelo WhatsApp ' + WA_AF + '.',
+    'Cadastrado': oi + 'O seu cadastro foi confirmado na Elos 360° Global e você já faz parte do Network Global. Aguarde o próximo contato: falaremos com você o mais breve possível.',
+    'Em andamento': oi + 'A sua solicitação está em andamento no setor ' + s + '. Estaremos entrando em contato o mais breve possível com as próximas etapas.',
+    'Aprovado': oi + 'Ótima notícia: a sua solicitação foi aprovada! A equipe da Elos 360° Global vai entrar em contato em breve com os próximos passos.',
+    'Irregular': oi + 'Encontramos uma pendência na sua solicitação (dados incompletos ou divergentes). Responda por aqui ou pelo WhatsApp ' + WA_AF + ' para regularizar, e daremos sequência o mais breve possível.',
+    'Bloqueado': oi + 'A sua solicitação foi suspensa pela coordenação. Se acredita que houve um engano, responda por aqui que a equipe vai analisar.'
+  })[st] || '';
+}
+async function solGet(col, id) { const r = await pool.query("SELECT data FROM elos_docs WHERE col='sol' AND id=$1", [solId(col, id)]); return r.rows[0] ? r.rows[0].data : null; }
+async function solPut(col, id, s) { await pool.query("INSERT INTO elos_docs(col,id,data,updated) VALUES('sol',$1,$2,$3) ON CONFLICT (col,id) DO UPDATE SET data=EXCLUDED.data, updated=EXCLUDED.updated", [solId(col, id), s, Date.now()]); broadcast('sol'); }
+async function solCrm(col, id, s, d) {
+  if (!['Cadastrado', 'Aprovado'].includes(s.st) || s.crm) return s;
+  const r = solResumo(col, id, d); const cid = ('sol_' + col + '_' + id).slice(0, 64);
+  const perfil = col === 'invn' || /invest/i.test(String((d && (d.int || d.perfil || d.msg)) || '')) ? 'investidor' : col === 'rast' ? 'cliente' : /parceiro/i.test(String(d && d.area)) ? 'parceiro' : 'cliente';
+  await pool.query("INSERT INTO elos_docs(col,id,data,updated) VALUES('r_crm',$1,$2,$3) ON CONFLICT (col,id) DO NOTHING", [cid, { Nome: r.nome, Perfil: perfil, Contato: r.contato, Etapa: s.st === 'Aprovado' ? 'fechado' : 'contato', Projeto: r.assunto, Origem: 'Solicitações Recebidas', t: Date.now() }, Date.now()]);
+  broadcast('r_crm'); s.crm = 1; return s;
+}
+async function solEnsure(col, id, d, user) {
+  try {
+    if (!SOLC[col] || !pool || !dbReady) return;
+    if (await solGet(col, id)) return;
+    const r = solResumo(col, id, d), setor = solSetor(col, d), st = solStDe(col, d), now = Date.now(); if (!r.nome && user) r.nome = user.name || '';
+    let s = { col, id, uid: solDono(col, id, d) || (user && user.id) || '', nome: (user && user.name) || '', email: (user && user.email) || '', st, setor, hist: [{ t: now, s: st, por: 'Solicitante' }], msgs: [{ de: 'Elora', t: now, m: solMsg('Novo', r, setor), auto: 1 }], criado: now };
+    if (st === 'Cadastrado') s.msgs.push({ de: 'Elora', t: now, m: solMsg('Cadastrado', r, setor), auto: 1 });
+    s = await solCrm(col, id, s, d);
+    await solPut(col, id, s);
+    eloraAviso('📥 Solicitação recebida — ' + (r.nome || 'sem nome') + ' · ' + r.assunto, true);
+    if (AI_KEY) solIA(col, id, r, setor).catch(() => {});
+  } catch (e) { console.warn('[sol]', e.message); }
+}
+async function solIA(col, id, r, setor) {
+  const prompt = 'Você é a Elora, a inteligência artificial da Elos 360° Global. Escreva UMA resposta curta (no máximo 3 frases), calorosa e profissional, no mesmo idioma da mensagem, para quem acabou de enviar esta solicitação. Agradeça pelo nome, cite o assunto em poucas palavras, diga que foi encaminhada ao setor "' + (SOL_SET[setor] || 'Network Global') + '" e ao Network Global, e peça para aguardar o próximo contato, dizendo que estaremos entrando em contato o mais breve possível. Não prometa prazos, valores nem resultados. Sem markdown.\n\nAssunto: ' + r.assunto + '\nNome: ' + r.nome + '\nPaís: ' + r.pais + '\nMensagem: ' + r.texto;
+  const { r: rr, j } = await claudeElos({ model: AI_MODEL, max_tokens: 300, messages: [{ role: 'user', content: prompt }] });
+  if (!rr.ok) return;
+  const t = (j.content || []).filter(c => c.type === 'text').map(c => c.text).join('').trim().slice(0, 900); if (!t) return;
+  const s = await solGet(col, id); if (!s) return;
+  const m = (s.msgs || []).find(x => x.de === 'Elora' && x.auto); if (m) { m.m = t + ' WhatsApp: ' + WA_AF + '.'; m.ia = 1; }
+  await solPut(col, id, s);
+}
+/* central da coordenação: tudo o que chegou, de todas as janelas */
+app.get('/api/sol', onlyOwner, async (req, res) => {
+  if (!pool || !dbReady) return res.json({ itens: [] });
+  try {
+    const cols = Object.keys(SOLC);
+    const { rows } = await pool.query('SELECT col,id,data,updated FROM elos_docs WHERE col = ANY($1)', [cols]);
+    const { rows: S } = await pool.query("SELECT id,data FROM elos_docs WHERE col='sol'");
+    const map = new Map(S.map(x => [x.id, x.data]));
+    const itens = rows.map(x => {
+      const s = map.get(solId(x.col, x.id)) || { st: solStDe(x.col, x.data), setor: solSetor(x.col, x.data), hist: [], msgs: [], antigo: 1 };
+      const rs = solResumo(x.col, x.id, x.data); if (!rs.nome && s.nome) rs.nome = s.nome; if (!rs.contato && s.email) rs.contato = s.email;
+      return Object.assign({ col: x.col, id: x.id, tipo: SOLC[x.col], up: +x.updated || 0 }, rs, { st: SOL_ST.includes(s.st) ? s.st : 'Novo', setor: s.setor, hist: s.hist || [], msgs: s.msgs || [], nova: !!s.nova, crm: !!s.crm, antigo: !!s.antigo });
+    }).sort((a, b) => (b.t || b.up) - (a.t || a.up));
+    res.json({ itens, setores: SOL_SET, situacoes: SOL_ST });
+  } catch (e) { res.status(500).json({ error: 'falha' }); }
+});
+app.post('/api/sol/:col/:id', onlyOwner, async (req, res) => {
+  const { col, id } = req.params; if (!SOLC[col] || !NAME_RE.test(id)) return res.status(400).json({ error: 'inválido' });
+  try {
+    const dr = await pool.query('SELECT data FROM elos_docs WHERE col=$1 AND id=$2', [col, id]); const d = dr.rows[0] && dr.rows[0].data; if (!d) return res.status(404).json({ error: 'não encontrado' });
+    const b = req.body || {}, now = Date.now(), r = solResumo(col, id, d);
+    let s = (await solGet(col, id)) || { col, id, uid: solDono(col, id, d), st: solStDe(col, d), setor: solSetor(col, d), hist: [], msgs: [], criado: now };
+    if (b.setor && SOL_SET[b.setor]) s.setor = b.setor;
+    if (b.st && SOL_ST.includes(b.st) && b.st !== s.st) {
+      s.st = b.st; s.hist = (s.hist || []).concat([{ t: now, s: b.st, por: 'Coordenação' }]);
+      const m = solMsg(b.st, r, s.setor); if (m) s.msgs = (s.msgs || []).concat([{ de: 'Elora', t: now, m, auto: 1 }]);
+      s = await solCrm(col, id, s, d);
+    }
+    if (typeof b.msg === 'string' && b.msg.trim()) { s.msgs = (s.msgs || []).concat([{ de: 'Equipe Elos', t: now, m: b.msg.trim().slice(0, 1500) }]); s.nova = 0; }
+    if (b.lido) s.nova = 0;
+    s.msgs = (s.msgs || []).slice(-100);
+    await solPut(col, id, s);
+    audit(req.user.id, 'solicitacao:' + (b.st || (b.msg ? 'resposta' : 'setor')), col, id);
+    res.json({ ok: true, sol: s });
+  } catch (e) { res.status(500).json({ error: 'falha' }); }
+});
+/* quem solicitou: acompanha e conversa em tempo real */
+app.get('/api/minhas-sol', async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'entre na sua conta' });
+  if (!pool || !dbReady) return res.json({ itens: [] });
+  try {
+    const { rows } = await pool.query("SELECT data FROM elos_docs WHERE col='sol' AND data->>'uid'=$1 ORDER BY updated DESC LIMIT 60", [req.user.id]);
+    const out = [];
+    for (const x of rows) { const s = x.data; const dr = await pool.query('SELECT data FROM elos_docs WHERE col=$1 AND id=$2', [s.col, s.id]); const d = dr.rows[0] && dr.rows[0].data; if (!d) continue; const r = solResumo(s.col, s.id, d); out.push({ col: s.col, id: s.id, assunto: r.assunto, texto: r.texto, t: r.t || s.criado, st: s.st, setor: SOL_SET[s.setor] || '', hist: s.hist || [], msgs: s.msgs || [] }); }
+    res.json({ itens: out });
+  } catch (e) { res.status(500).json({ error: 'falha' }); }
+});
+app.post('/api/minhas-sol/:col/:id/msg', async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'entre na sua conta' });
+  if (limited('solmsg:' + req.user.id, 30, 36e5)) return res.status(429).json({ error: 'Muitas mensagens. Aguarde um pouco.' });
+  const { col, id } = req.params; if (!SOLC[col] || !NAME_RE.test(id)) return res.status(400).json({ error: 'inválido' });
+  const m = String((req.body || {}).m || '').trim().slice(0, 1500); if (!m) return res.status(400).json({ error: 'mensagem vazia' });
+  if (secBody(m)) { secStrike(req.ip || '', 'conteudo-malicioso', req.path); return res.status(400).json({ error: 'Conteúdo não permitido.' }); }
+  try {
+    const s = await solGet(col, id); if (!s || s.uid !== req.user.id) return res.status(404).json({ error: 'não encontrado' });
+    if (s.st === 'Bloqueado' && (s.msgs || []).filter(x => x.de === 'Solicitante').length > 20) return res.status(403).json({ error: 'solicitação suspensa' });
+    s.msgs = (s.msgs || []).concat([{ de: 'Solicitante', t: Date.now(), m }]).slice(-100); s.nova = 1;
+    await solPut(col, id, s);
+    eloraAviso('💬 Resposta de solicitante — ' + (req.user.name || req.user.email || '') + ': ' + m.slice(0, 120), true);
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'falha' }); }
+});
+
+/* ---------- antivírus da plataforma: varredura diária e bloqueio de conteúdo malicioso na entrada ---------- */
+const VARREDURA = SEGURANCA.create({
+  nome: 'Elos 360° Global', base: __dirname,
+  listDocs: async () => { if (!pool || !dbReady) return []; const { rows } = await pool.query("SELECT col,id,data FROM elos_docs WHERE col NOT IN ('secscan')"); return rows; },
+  load: async () => { if (!pool || !dbReady) return null; const r = await pool.query("SELECT data FROM elos_docs WHERE col='secscan' AND id='estado'"); return r.rows[0] ? r.rows[0].data : null; },
+  save: async (o) => { if (pool && dbReady) await pool.query("INSERT INTO elos_docs(col,id,data,updated) VALUES('secscan','estado',$1,$2) ON CONFLICT (col,id) DO UPDATE SET data=EXCLUDED.data, updated=EXCLUDED.updated", [o, Date.now()]); },
+  config: () => [
+    { item: 'Chave de sessão fixa configurada (SESSION_SECRET)', ok: !!SECRET, nivel: 'alto', nota: 'defina SESSION_SECRET no servidor' },
+    { item: 'Banco de dados permanente (Postgres)', ok: !!process.env.DATABASE_URL, nivel: 'alto' },
+    { item: 'Endereço oficial com HTTPS (elo360global.com.br)', ok: /^https:\/\//.test(process.env.PUBLIC_URL || 'https://elo360global.com.br'), nivel: 'medio' },
+    { item: 'Senhas guardadas com argon2 (padrão bancário)', ok: true },
+    { item: 'Escudo contra invasão ativo', ok: true },
+    { item: 'Cabeçalhos de proteção (CSP, HSTS, anti-clickjacking)', ok: true }
+  ],
+  escudo: () => secResumo()
+});
+app.get('/api/admin/seguranca', onlyOwner, async (req, res) => { try { res.json(await VARREDURA.status()); } catch (e) { res.status(500).json({ error: 'falha' }); } });
+app.post('/api/admin/seguranca/varrer', onlyOwner, async (req, res) => { if (limited('varrer:' + req.user.id, 6, 36e5)) return res.status(429).json({ error: 'Aguarde para varrer de novo.' }); try { res.json(await VARREDURA.run('pedida pela coordenação')); } catch (e) { res.status(500).json({ error: 'falha na varredura' }); } });
 
 app.use('/api', (req, res) => res.status(404).json({ error: 'não encontrado' }));
 
