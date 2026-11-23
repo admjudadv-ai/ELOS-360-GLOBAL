@@ -201,7 +201,17 @@ app.set('trust proxy', 1);
 /* ---------- IP real do visitante (o domínio passa pela Cloudflare: sem isto, um ataque bloquearia o endereço compartilhado da Cloudflare e derrubaria visitantes legítimos) ---------- */
 const CF_NETS = ['173.245.48.0/20', '103.21.244.0/22', '103.22.200.0/22', '103.31.4.0/22', '141.101.64.0/18', '108.162.192.0/18', '190.93.240.0/20', '188.114.96.0/20', '197.234.240.0/22', '198.41.128.0/17', '162.158.0.0/15', '104.16.0.0/13', '104.24.0.0/14', '172.64.0.0/13', '131.0.72.0/22'].map(c => { const [a, b] = c.split('/'); const n = a.split('.').reduce((s, x) => (s << 8) + (+x), 0) >>> 0; const m = b == 0 ? 0 : (~0 << (32 - b)) >>> 0; return [(n & m) >>> 0, m]; });
 function isCloudflare(ip) { ip = String(ip || '').replace(/^::ffff:/, ''); if (!/^\d+\.\d+\.\d+\.\d+$/.test(ip)) return /^(2400:cb00|2606:4700|2803:f800|2405:b500|2405:8100|2a06:98c0|2a0b:4e07|2c0f:f248):/i.test(ip); const n = ip.split('.').reduce((s, x) => (s << 8) + (+x), 0) >>> 0; return CF_NETS.some(([net, m]) => ((n & m) >>> 0) === net); }
-app.use((req, res, next) => { const via = req.ip; const cf = req.get('cf-connecting-ip'); if (cf && isCloudflare(via) && /^[0-9a-f.:]{3,45}$/i.test(cf)) Object.defineProperty(req, 'ip', { value: cf, configurable: true }); next(); });
+const isPrivIp = ip => /^(10\.|127\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.|::1$|f[cd][0-9a-f]{2}:|fe80:)/i.test(String(ip || '').replace(/^::ffff:/, ''));
+function realIp(req) {
+  const cf = String(req.get('cf-connecting-ip') || req.get('true-client-ip') || '').trim();
+  const xff = String(req.get('x-forwarded-for') || '').split(',').map(x => x.trim().replace(/^::ffff:/, '')).filter(Boolean);
+  const sock = String((req.socket && req.socket.remoteAddress) || '').replace(/^::ffff:/, '');
+  const chain = xff.concat(sock ? [sock] : []);
+  for (let i = chain.length - 1; i >= 0; i--) { const ip = chain[i]; if (!/^[0-9a-f.:]{3,45}$/i.test(ip)) continue; if (isPrivIp(ip) || isCloudflare(ip)) continue; return ip; }
+  if (cf && /^[0-9a-f.:]{3,45}$/i.test(cf)) return cf;
+  return req.ip;
+}
+app.use((req, res, next) => { try { Object.defineProperty(req, 'ip', { value: realIp(req), configurable: true }); } catch (e) {} next(); });
 /* ---------- escudo de segurança: bloqueia varreduras de hackers, abuso e endereços suspeitos ---------- */
 const SEC = { bans: new Map(), strikes: new Map(), hits: new Map(), blocked: 0, banned: 0, ev: [] };
 const SEC_BAD = /(\.env|\.git\/|\.svn|\.ht(access|passwd)|wp-(admin|login|content|includes)|xmlrpc\.php|phpmyadmin|pma\/|adminer|\.php\d?$|\.asp(x)?$|\.jsp$|cgi-bin|\.aws\/|\.ssh\/|id_rsa|server-status|\.ds_store|etc\/passwd|\/vendor\/phpunit|boaform|\/actuator|\.sql$|\.bak$|\/backup)/i;
@@ -210,7 +220,7 @@ const SEGURANCA = require('./seguranca');
 const AVISOS = require('./avisos');
 function secBody(b) { const h = []; SEGURANCA.scanValue(b, h, 'entrada', 0); return h.some(x => x.nivel === 'critico' || x.nivel === 'alto'); }
 function secLog(ip, why, path) { SEC.ev.push({ t: Date.now(), ip: String(ip || '').replace(/\d+$/, 'x'), why, path: String(path || '').slice(0, 80) }); if (SEC.ev.length > 100) SEC.ev.shift(); if (typeof audit === 'function') audit(null, 'seguranca:' + why, null, String(path || '').slice(0, 80)); }
-function secStrike(ip, why, path) {
+function secStrike(ip, why, path) { if (isCloudflare(ip) || isPrivIp(ip)) { SEC.blocked++; return; }
   SEC.blocked++; secLog(ip, why, path);
   const now = Date.now(), a = (SEC.strikes.get(ip) || []).filter(t => now - t < 10 * 6e4); a.push(now); SEC.strikes.set(ip, a);
   if (a.length >= 8) { SEC.bans.set(ip, now + 60 * 6e4); SEC.banned++; secLog(ip, 'ip-bloqueado-1h', path); }
