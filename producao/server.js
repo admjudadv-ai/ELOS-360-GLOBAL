@@ -206,7 +206,7 @@ function realIp(req) {
   const cf = String(req.get('cf-connecting-ip') || req.get('true-client-ip') || '').trim();
   const xff = String(req.get('x-forwarded-for') || '').split(',').map(x => x.trim().replace(/^::ffff:/, '')).filter(Boolean);
   const sock = String((req.socket && req.socket.remoteAddress) || '').replace(/^::ffff:/, '');
-  const chain = xff.concat(sock ? [sock] : []);
+  const chain = xff.length ? xff : (sock ? [sock] : []);
   for (let i = chain.length - 1; i >= 0; i--) { const ip = chain[i]; if (!/^[0-9a-f.:]{3,45}$/i.test(ip)) continue; if (isPrivIp(ip) || isCloudflare(ip)) continue; return ip; }
   if (cf && /^[0-9a-f.:]{3,45}$/i.test(cf)) return cf;
   return req.ip;
