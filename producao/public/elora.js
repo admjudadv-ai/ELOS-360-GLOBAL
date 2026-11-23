@@ -9,7 +9,7 @@
   var WA_TXT = 'Olá! Quero me cadastrar na Elos 360° Global.';
   var EMAIL = 'contato@elos360global.com.br';
   // perfis oficiais: preencha quando as páginas estiverem criadas (deixe '' para usar o compartilhamento)
-  var PERFIS = { instagram: 'https://www.instagram.com/elos360global/', facebook: '', linkedin: '', tiktok: '', youtube: '', x: '', threads: '' };
+  var PERFIS = { instagram: 'https://www.instagram.com/elos360.global/', facebook: '', linkedin: '', tiktok: '', youtube: '', x: '', threads: '' };
 
   var D0 = document, W = window, IS_SYS = !!D0.getElementById('m') && typeof W.route === 'function';
   var SITE_URL = 'https://elo360global.com.br' + (IS_SYS ? '/sistema' : '/');
@@ -29,11 +29,13 @@
     safe(function () { mapItems().forEach(function (x) { addWin(x[0], x[1], x[2], x[3]); }); });
     safe(function () { M.forEach(function (m) { addWin(m.id, m.i, m.n, 'Módulo de gestão integrado'); }); });
     safe(function () { SET.forEach(function (s) { addWin('s-' + s[0], s[2], s[1], 'Setor: tarefas, módulos e equipe'); }); });
-    [['mocambique', '🇲🇿', 'Projetos Moçambique 2027–2030', 'Urgências ao vivo, 12 setores, projetos para investidores e WhatsApp +258 85 761 3514'], ['investidores', '💎', 'Investidores · Níveis Elos 360°', 'Sete níveis de R$ 15.000 a US$ 1.000.000, simulador, jornada e ficha'], ['', '🏠', 'Início', 'Banner com todos os setores e caminhos rápidos'], ['mapa', '🗺️', 'Mapa do sistema', 'Todas as janelas por objetivo'], ['eventos', '🌍', 'Eventos Globais', 'Congressos, feiras, exposições e simpósios'], ['medicina', '🩺', 'Congressos médicos', 'Todas as especialidades no mundo'], ['rastreamento', '🚚', 'Transportadoras e logística', 'Rastreamento de frotas em todo o Brasil'], ['comunidade', '🌎', 'Comunidade Profissional', 'Áreas profissionais do mundo em conexão'], ['oport', '💼', 'Mural de Oportunidades', 'Negócios, parcerias e investimentos'], ['one', '🌐', 'Elos One System 360°', 'Todos os setores numa visão integrada'], ['terras', '🧲', 'Terras raras no Brasil', 'Projetos e negociações'], ['pasta-andamento', '🔄', 'Projetos em andamento', 'Pasta integrada de projetos'], ['pasta-novo', '🆕', 'Novos projetos', 'Pasta integrada de projetos'], ['evminhas', '📌', 'Meus eventos', 'Interesses e contratações em eventos'], ['ti', '💻', 'TI & Dados', 'Servidor, segurança e dados']].forEach(function (x) { addWin(x[0], x[1], x[2], x[3]); });
+    [['apoio', '💜', 'Apoio às vítimas · Maria da Penha e crimes de ódio', 'O que fazer, onde procurar e seus direitos'], ['visitas', '📊', 'Acessos, cadastros e segurança', 'Quem só entrou, quem se cadastrou e ataques bloqueados'], ['mocambique', '🇲🇿', 'Projetos Moçambique 2027–2030', 'Urgências ao vivo, 12 setores, projetos para investidores e WhatsApp +258 85 761 3514'], ['investidores', '💎', 'Investidores · Níveis Elos 360°', 'Sete níveis de R$ 15.000 a US$ 1.000.000, simulador, jornada e ficha'], ['', '🏠', 'Início', 'Banner com todos os setores e caminhos rápidos'], ['mapa', '🗺️', 'Mapa do sistema', 'Todas as janelas por objetivo'], ['eventos', '🌍', 'Eventos Globais', 'Congressos, feiras, exposições e simpósios'], ['medicina', '🩺', 'Congressos médicos', 'Todas as especialidades no mundo'], ['rastreamento', '🚚', 'Transportadoras e logística', 'Rastreamento de frotas em todo o Brasil'], ['comunidade', '🌎', 'Comunidade Profissional', 'Áreas profissionais do mundo em conexão'], ['oport', '💼', 'Mural de Oportunidades', 'Negócios, parcerias e investimentos'], ['one', '🌐', 'Elos One System 360°', 'Todos os setores numa visão integrada'], ['terras', '🧲', 'Terras raras no Brasil', 'Projetos e negociações'], ['pasta-andamento', '🔄', 'Projetos em andamento', 'Pasta integrada de projetos'], ['pasta-novo', '🆕', 'Novos projetos', 'Pasta integrada de projetos'], ['evminhas', '📌', 'Meus eventos', 'Interesses e contratações em eventos'], ['ti', '💻', 'TI & Dados', 'Servidor, segurança e dados']].forEach(function (x) { addWin(x[0], x[1], x[2], x[3]); });
   }
 
   /* ---------- conexões entre janelas e módulos ---------- */
   var REL = {
+    apoio: ['s-pes', 'social', 'documentos', 'previdencia', 'contato'],
+    visitas: ['acessos', 'leads', 'painel', 'ti'],
     mocambique: ['investidores', 'pais-MZ', 'terrasafrica', 'prog-min', 'mulheres', 'energia', 'engenharia', 'social', 'fiscal', 'network'],
     investidores: ['mocambique', 'network', 'con', 'ban', 'fin', 'jur', 'programas', 'oport'],
     '': ['network', 'eventos', 'fiscal', 'oport', 'previdencia', 'programas', 'comunidade'],
@@ -89,7 +91,7 @@
     return [
       ['wa', 'WhatsApp · Cadastro', '#25D366', waLink(), 'wa'],
       ['wa', 'WhatsApp principal · África e Moçambique +258 85 761 3514', '#0c7a46', 'https://wa.me/258857613514?text=' + encodeURIComponent('Olá, Elos 360° Global!'), ''],
-      ['ig', 'Instagram @elos360global', 'linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7)', PERFIS.instagram || 'https://www.instagram.com/', PERFIS.instagram ? '' : 'copy'],
+      ['ig', 'Instagram @elos360.global', 'linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7)', PERFIS.instagram || 'https://www.instagram.com/', PERFIS.instagram ? '' : 'copy'],
       ['fb', 'Facebook', '#1877F2', PERFIS.facebook || 'https://www.facebook.com/sharer/sharer.php?u=' + u, ''],
       ['in', 'LinkedIn', '#0A66C2', PERFIS.linkedin || 'https://www.linkedin.com/sharing/share-offsite/?url=' + u, ''],
       ['x', 'X (Twitter)', '#000', PERFIS.x || 'https://twitter.com/intent/tweet?url=' + u + '&text=' + tx, ''],

@@ -194,6 +194,27 @@ setInterval(() => { const now = Date.now(); for (const [k, h] of hits) if (!h.so
 const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
+/* ---------- escudo de segurança: bloqueia varreduras de hackers, abuso e endereços suspeitos ---------- */
+const SEC = { bans: new Map(), strikes: new Map(), hits: new Map(), blocked: 0, banned: 0, ev: [] };
+const SEC_BAD = /(\.env|\.git\/|\.svn|\.ht(access|passwd)|wp-(admin|login|content|includes)|xmlrpc\.php|phpmyadmin|pma\/|adminer|\.php\d?$|\.asp(x)?$|\.jsp$|cgi-bin|\.aws\/|\.ssh\/|id_rsa|server-status|\.ds_store|etc\/passwd|\/vendor\/phpunit|boaform|\/actuator|\.sql$|\.bak$|\/backup)/i;
+const SEC_INJ = /(<script|%3cscript|union(\s|%20|\+)+select|\.\.\/|\.\.%2f|%00|\bsleep\(|benchmark\(|\/etc\/passwd|;\s*(drop|shutdown)\s)/i;
+function secLog(ip, why, path) { SEC.ev.push({ t: Date.now(), ip: String(ip || '').replace(/\d+$/, 'x'), why, path: String(path || '').slice(0, 80) }); if (SEC.ev.length > 100) SEC.ev.shift(); if (typeof audit === 'function') audit(null, 'seguranca:' + why, null, String(path || '').slice(0, 80)); }
+function secStrike(ip, why, path) {
+  SEC.blocked++; secLog(ip, why, path);
+  const now = Date.now(), a = (SEC.strikes.get(ip) || []).filter(t => now - t < 10 * 6e4); a.push(now); SEC.strikes.set(ip, a);
+  if (a.length >= 8) { SEC.bans.set(ip, now + 60 * 6e4); SEC.banned++; secLog(ip, 'ip-bloqueado-1h', path); }
+}
+app.use((req, res, next) => {
+  const ip = req.ip || '', now = Date.now(), ban = SEC.bans.get(ip);
+  if (ban && ban > now) return res.status(403).type('text').send('Acesso bloqueado temporariamente por segurança.');
+  if (ban) SEC.bans.delete(ip);
+  let raw = req.originalUrl || ''; try { raw += ' ' + decodeURIComponent(raw); } catch {}
+  if (SEC_BAD.test(req.path)) { secStrike(ip, 'varredura', req.path); return res.status(404).type('text').send('Não encontrado'); }
+  if (SEC_INJ.test(raw) || raw.length > 4000) { secStrike(ip, 'injecao', req.path); return res.status(400).type('text').send('Requisição inválida'); }
+  if (req.path.startsWith('/api')) { const h = (SEC.hits.get(ip) || []).filter(t => now - t < 5 * 6e4); h.push(now); SEC.hits.set(ip, h); if (h.length > 900) { secStrike(ip, 'excesso', req.path); return res.status(429).json({ error: 'Muitas requisições. Aguarde alguns minutos.' }); } }
+  next();
+});
+setInterval(() => { const now = Date.now(); for (const [k, v] of SEC.bans) if (v < now) SEC.bans.delete(k); for (const [k, v] of SEC.strikes) if (!v.some(t => now - t < 10 * 6e4)) SEC.strikes.delete(k); for (const [k, v] of SEC.hits) if (!v.some(t => now - t < 5 * 6e4)) SEC.hits.delete(k); }, 5 * 6e4).unref();
 /* endereço oficial: o domínio registrado elo360global.com.br (demais endereços redirecionam para ele) */
 const CANON = 'elo360global.com.br';
 app.use((req, res, next) => {
@@ -206,9 +227,12 @@ app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-site');
+  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(self), geolocation=()');
   if (secureReq(req)) res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self' mailto:");
+  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self' mailto:");
   next();
 });
 app.use(express.json({ limit: '1mb', verify: (req, res, buf) => { if (req.originalUrl.startsWith('/api/whatsapp')) req.rawBody = buf; } }));
@@ -252,6 +276,7 @@ app.post('/api/register', needDb, async (req, res) => {
     return res.status(409).json({ error: 'Este e-mail já tem conta. Use Entrar.' });
   }
   audit(id, 'register');
+  visMark(req, id);
   eloraAviso('🆕 Novo cadastro na plataforma: ' + (name || 'sem nome') + ' (' + email + ')', true);
   console.log(`[elos] novo cadastro (${OWNER_EMAILS.includes(email) ? 'coordenação' : 'membro'})`);
   setSession(req, res, id);
@@ -266,6 +291,7 @@ app.post('/api/login', needDb, async (req, res) => {
   if (!ok) return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
   await pool.query('UPDATE elos_users SET last_login=$2 WHERE id=$1', [rows[0].id, Date.now()]);
   audit(rows[0].id, 'login');
+  visMark(req, rows[0].id);
   console.log(`[elos] entrada na conta (${OWNER_EMAILS.includes(email) ? 'coordenação' : 'membro'})`);
   setSession(req, res, rows[0].id);
   res.json({ ok: true });
@@ -533,6 +559,7 @@ const ELORA_SYS = [
   'Você conhece a janela aberta e as janelas conectadas a ela (contexto abaixo). Ligue as informações entre setores e módulos: mostre como um lançamento ou decisão numa janela afeta as outras e indique onde continuar.',
   'Para oferecer um botão que abre uma janela, escreva [[abrir:ID|Rótulo]] usando um ID da lista de janelas (use "inicio" como string vazia: [[abrir:|Início]]). Para cadastro ou atendimento humano, ofereça [[whatsapp]] (WhatsApp de cadastro (11) 98165-3110). Ofereça no máximo 4 botões.',
   'Contato principal da Elos para África e Moçambique: WhatsApp +258 85 761 3514 (https://wa.me/258857613514). A janela "mocambique" (Projetos Moçambique 2027–2030) traz urgências do país, 12 setores (o que Moçambique necessita e o que oferece), projetos para investidores ligados aos níveis da janela "investidores" e atualizações reais; quando houver pesquisa na web, use-a para dados atuais e cite fonte e data.',
+  'Se alguém relatar violência doméstica, racismo, LGBTfobia, intolerância religiosa ou outro preconceito: acolha com calma, indique 190 em perigo imediato, Ligue 180 (WhatsApp (61) 9610-0180) para violência contra a mulher, Disque 100 (WhatsApp (61) 99611-0100) para crimes de ódio, e ofereça [[abrir:apoio|Apoio às vítimas]]. Nunca culpe a vítima nem peça detalhes desnecessários.',
   'Regras: não invente números, nomes de pessoas, clientes ou parceiros que não estejam no contexto. Não trate de outras empresas além da Elos 360° Global. Em temas jurídicos, previdenciários e tributários, dê orientação geral e indique o atendimento da equipe Elos para o caso concreto. Nunca peça senhas, CPF ou dados bancários no chat. A responsável institucional é a Coordenadora PSP.',
 ].join('\n');
 app.get('/api/elora', (req, res) => res.json({ on: !!AI_KEY }));
@@ -573,6 +600,44 @@ app.post('/api/elora', async (req, res) => {
   } catch { res.status(502).json({ error: 'Elora indisponível' }); }
 });
 
+
+
+/* ---------- controle de acessos: quem só entrou e quem entrou e se cadastrou (identificador anônimo, sem IP) ---------- */
+const VID_RE = /^[a-z0-9-]{16,64}$/i;
+async function visUpsert(vid, uid) {
+  if (!pool || !dbReady || !VID_RE.test(vid)) return;
+  const now = Date.now(), r = await pool.query("SELECT data FROM elos_docs WHERE col='visid' AND id=$1", [vid]);
+  const d = r.rows[0] ? r.rows[0].data : { first: now, n: 0 };
+  d.last = now; d.n = (d.n || 0) + 1; if (uid) { d.reg = true; d.uid = uid; if (!d.regAt) d.regAt = now; }
+  await pool.query("INSERT INTO elos_docs(col,id,data,updated) VALUES('visid',$1,$2,$3) ON CONFLICT (col,id) DO UPDATE SET data=EXCLUDED.data, updated=EXCLUDED.updated", [vid, d, now]);
+}
+function visMark(req, uid) { const v = String(req.get('X-Vid') || ''); if (VID_RE.test(v)) visUpsert(v, uid).catch(() => {}); }
+app.post('/api/visita', async (req, res) => {
+  const vid = String((req.body || {}).vid || '');
+  if (!VID_RE.test(vid) || limited('vis:' + req.ip, 120, 36e5)) return res.json({ ok: false });
+  try { await visUpsert(vid, req.user && !req.user.isOwner ? req.user.id : (req.user ? req.user.id : null)); } catch {}
+  res.json({ ok: true });
+});
+app.get('/api/admin/acessos', async (req, res) => {
+  if (!(req.user && req.user.isOwner)) return res.status(403).json({ error: 'somente a coordenação' });
+  if (!pool || !dbReady) return res.json({ semBanco: true, seguranca: secResumo() });
+  const DAY = 864e5, OFF = 3 * 36e5, now = Date.now(), d0 = Math.floor((now - OFF) / DAY) * DAY + OFF;
+  const q = async (sql, a) => (await pool.query(sql, a || [])).rows;
+  const [v] = await q(`SELECT count(*)::int total,
+      count(*) FILTER (WHERE (data->>'first')::bigint >= $1)::int hoje,
+      count(*) FILTER (WHERE (data->>'first')::bigint >= $2)::int d7,
+      count(*) FILTER (WHERE (data->>'first')::bigint >= $3)::int d30,
+      count(*) FILTER (WHERE (data->>'last')::bigint >= $1)::int ativos_hoje,
+      count(*) FILTER (WHERE (data->>'reg')::boolean)::int cadastraram,
+      coalesce(sum((data->>'n')::int),0)::int visitas
+    FROM elos_docs WHERE col='visid'`, [d0, d0 - 6 * DAY, d0 - 29 * DAY]);
+  const [u] = await q(`SELECT count(*)::int total, count(*) FILTER (WHERE created >= $1)::int hoje, count(*) FILTER (WHERE created >= $2)::int d7, count(*) FILTER (WHERE created >= $3)::int d30, count(*) FILTER (WHERE last_login >= $1)::int entraram_hoje FROM elos_users`, [d0, d0 - 6 * DAY, d0 - 29 * DAY]);
+  const sv = await q(`SELECT floor(((data->>'first')::bigint - $2)/$3)::int dia, count(*)::int n FROM elos_docs WHERE col='visid' AND (data->>'first')::bigint >= $1 GROUP BY 1`, [d0 - 13 * DAY, OFF, DAY]);
+  const su = await q(`SELECT floor((created - $2)/$3)::int dia, count(*)::int n FROM elos_users WHERE created >= $1 GROUP BY 1`, [d0 - 13 * DAY, OFF, DAY]);
+  const serie = []; for (let i = 13; i >= 0; i--) { const di = Math.floor((d0 - OFF) / DAY) - i; serie.push({ dia: new Date(di * DAY + OFF + 12 * 36e5).toISOString().slice(0, 10), visitantes: (sv.find(x => x.dia === di) || {}).n || 0, cadastros: (su.find(x => x.dia === di) || {}).n || 0 }); }
+  res.json({ visitantes: v, cadastros: u, so_entraram: Math.max(0, v.total - v.cadastraram), conversao: v.total ? Math.round(v.cadastraram / v.total * 1000) / 10 : 0, serie, seguranca: secResumo() });
+});
+function secResumo() { const now = Date.now(); return { bloqueios: SEC.blocked, ips_bloqueados_total: SEC.banned, ips_bloqueados_agora: [...SEC.bans.values()].filter(t => t > now).length, eventos: SEC.ev.slice(-15).reverse() }; }
 
 /* ---------- Projetos Moçambique 2027–2030: atualizações reais (pesquisa na web pela IA, guardadas no banco) ---------- */
 const MZ_WEB = n => ({ type: 'web_search_20250305', name: 'web_search', max_uses: n });

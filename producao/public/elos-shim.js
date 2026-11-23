@@ -3,6 +3,9 @@
   'use strict';
   if (window.claude) return;
   var H = { 'Content-Type': 'application/json', 'X-Elos': '1' };
+  var VID = ''; try { VID = localStorage.getItem('e360vid') || ''; if (!/^[a-z0-9-]{16,64}$/i.test(VID)) { VID = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)); localStorage.setItem('e360vid', VID); } } catch (e) { VID = 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2, 14); }
+  H['X-Vid'] = VID;
+  try { if (!sessionStorage.getItem('e360vs')) { sessionStorage.setItem('e360vs', '1'); setTimeout(function () { fetch('/api/visita', { method: 'POST', headers: H, credentials: 'same-origin', body: JSON.stringify({ vid: VID }) }).catch(function () {}); }, 1500); } } catch (e) {}
   function api(m, u, b) {
     return fetch(u, { method: m, headers: H, credentials: 'same-origin', body: b === undefined ? undefined : JSON.stringify(b) })
       .then(function (r) {
