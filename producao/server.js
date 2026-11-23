@@ -196,6 +196,10 @@ setInterval(() => { const now = Date.now(); for (const [k, h] of hits) if (!h.so
 const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
+/* ---------- IP real do visitante (o domínio passa pela Cloudflare: sem isto, um ataque bloquearia o endereço compartilhado da Cloudflare e derrubaria visitantes legítimos) ---------- */
+const CF_NETS = ['173.245.48.0/20', '103.21.244.0/22', '103.22.200.0/22', '103.31.4.0/22', '141.101.64.0/18', '108.162.192.0/18', '190.93.240.0/20', '188.114.96.0/20', '197.234.240.0/22', '198.41.128.0/17', '162.158.0.0/15', '104.16.0.0/13', '104.24.0.0/14', '172.64.0.0/13', '131.0.72.0/22'].map(c => { const [a, b] = c.split('/'); const n = a.split('.').reduce((s, x) => (s << 8) + (+x), 0) >>> 0; const m = b == 0 ? 0 : (~0 << (32 - b)) >>> 0; return [(n & m) >>> 0, m]; });
+function isCloudflare(ip) { ip = String(ip || '').replace(/^::ffff:/, ''); if (!/^\d+\.\d+\.\d+\.\d+$/.test(ip)) return /^(2400:cb00|2606:4700|2803:f800|2405:b500|2405:8100|2a06:98c0|2a0b:4e07|2c0f:f248):/i.test(ip); const n = ip.split('.').reduce((s, x) => (s << 8) + (+x), 0) >>> 0; return CF_NETS.some(([net, m]) => ((n & m) >>> 0) === net); }
+app.use((req, res, next) => { const via = req.ip; const cf = req.get('cf-connecting-ip'); if (cf && isCloudflare(via) && /^[0-9a-f.:]{3,45}$/i.test(cf)) Object.defineProperty(req, 'ip', { value: cf, configurable: true }); next(); });
 /* ---------- escudo de segurança: bloqueia varreduras de hackers, abuso e endereços suspeitos ---------- */
 const SEC = { bans: new Map(), strikes: new Map(), hits: new Map(), blocked: 0, banned: 0, ev: [] };
 const SEC_BAD = /(\.env|\.git\/|\.svn|\.ht(access|passwd)|wp-(admin|login|content|includes)|xmlrpc\.php|phpmyadmin|pma\/|adminer|\.php\d?$|\.asp(x)?$|\.jsp$|cgi-bin|\.aws\/|\.ssh\/|id_rsa|server-status|\.ds_store|etc\/passwd|\/vendor\/phpunit|boaform|\/actuator|\.sql$|\.bak$|\/backup)/i;
