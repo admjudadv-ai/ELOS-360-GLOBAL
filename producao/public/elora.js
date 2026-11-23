@@ -29,14 +29,15 @@
     safe(function () { mapItems().forEach(function (x) { addWin(x[0], x[1], x[2], x[3]); }); });
     safe(function () { M.forEach(function (m) { addWin(m.id, m.i, m.n, 'Módulo de gestão integrado'); }); });
     safe(function () { SET.forEach(function (s) { addWin('s-' + s[0], s[2], s[1], 'Setor: tarefas, módulos e equipe'); }); });
-    [['', '🏠', 'Início', 'Banner com todos os setores e caminhos rápidos'], ['mapa', '🗺️', 'Mapa do sistema', 'Todas as janelas por objetivo'], ['eventos', '🌍', 'Eventos Globais', 'Congressos, feiras, exposições e simpósios'], ['medicina', '🩺', 'Congressos médicos', 'Todas as especialidades no mundo'], ['rastreamento', '🚚', 'Transportadoras e logística', 'Rastreamento de frotas em todo o Brasil'], ['comunidade', '🌎', 'Comunidade Profissional', 'Áreas profissionais do mundo em conexão'], ['oport', '💼', 'Mural de Oportunidades', 'Negócios, parcerias e investimentos'], ['one', '🌐', 'Elos One System 360°', 'Todos os setores numa visão integrada'], ['terras', '🧲', 'Terras raras no Brasil', 'Projetos e negociações'], ['pasta-andamento', '🔄', 'Projetos em andamento', 'Pasta integrada de projetos'], ['pasta-novo', '🆕', 'Novos projetos', 'Pasta integrada de projetos'], ['evminhas', '📌', 'Meus eventos', 'Interesses e contratações em eventos'], ['ti', '💻', 'TI & Dados', 'Servidor, segurança e dados']].forEach(function (x) { addWin(x[0], x[1], x[2], x[3]); });
+    [['investidores', '💎', 'Investidores · Níveis Elos 360°', 'Sete níveis de R$ 15.000 a US$ 1.000.000, simulador, jornada e ficha'], ['', '🏠', 'Início', 'Banner com todos os setores e caminhos rápidos'], ['mapa', '🗺️', 'Mapa do sistema', 'Todas as janelas por objetivo'], ['eventos', '🌍', 'Eventos Globais', 'Congressos, feiras, exposições e simpósios'], ['medicina', '🩺', 'Congressos médicos', 'Todas as especialidades no mundo'], ['rastreamento', '🚚', 'Transportadoras e logística', 'Rastreamento de frotas em todo o Brasil'], ['comunidade', '🌎', 'Comunidade Profissional', 'Áreas profissionais do mundo em conexão'], ['oport', '💼', 'Mural de Oportunidades', 'Negócios, parcerias e investimentos'], ['one', '🌐', 'Elos One System 360°', 'Todos os setores numa visão integrada'], ['terras', '🧲', 'Terras raras no Brasil', 'Projetos e negociações'], ['pasta-andamento', '🔄', 'Projetos em andamento', 'Pasta integrada de projetos'], ['pasta-novo', '🆕', 'Novos projetos', 'Pasta integrada de projetos'], ['evminhas', '📌', 'Meus eventos', 'Interesses e contratações em eventos'], ['ti', '💻', 'TI & Dados', 'Servidor, segurança e dados']].forEach(function (x) { addWin(x[0], x[1], x[2], x[3]); });
   }
 
   /* ---------- conexões entre janelas e módulos ---------- */
   var REL = {
+    investidores: ['network', 'con', 'ban', 'fin', 'jur', 'programas', 'oport'],
     '': ['network', 'eventos', 'fiscal', 'oport', 'previdencia', 'programas', 'comunidade'],
     mapa: ['', 'bemvindo', 'network', 'eventos', 'fiscal', 'contato'],
-    network: ['pasta-andamento', 'pasta-novo', 'novo', 'central', 'comunidade', 'oport', 'crm'],
+    network: ['investidores', 'pasta-andamento', 'pasta-novo', 'novo', 'central', 'comunidade', 'oport', 'crm'],
     pasta: ['network', 'novo', 'central', 'setores', 'painel'], novo: ['network', 'setores', 'central', 'fin', 'con'],
     p: ['network', 'central', 'setores', 'fin', 'con', 'doc', 'painel'],
     central: ['network', 'setores', 'painel', 'one'], painel: ['fin', 'cob', 'ban', 'central', 'network', 'one'],
@@ -303,6 +304,7 @@
     return { janela: location.hash.slice(1) || 'inicio', titulo: title(), texto: txt, conexoes: rel, dados: dados, janelas: jan.slice(0, 5000), pagina: IS_SYS ? 'sistema' : 'site', idioma: langNow() };
   }
 
+  W.eloraAsk = function (q) { ask(q); };
   function ask(q) {
     if (BUSY) return;
     openP(true);

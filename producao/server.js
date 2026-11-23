@@ -104,6 +104,9 @@ const RULES = {
   resp: { read: 'view', write: 'interact' },
   areas: { read: 'view', write: 'interact' },
   /* Rastreamento de frotas: cada pessoa vê só o próprio pedido; comissões e contatos do parceiro só a coordenação */
+  /* Investidores: cada pessoa vê só a própria ficha; a coordenação vê todas */
+  invn: { read: 'admin', write: 'admin' },
+  'invn/{self}': { read: 'view', write: 'view' },
   rast: { read: 'admin', write: 'admin' },
   'rast/{self}': { read: 'view', write: 'view' },
   rastc: { read: 'admin', write: 'admin' },
@@ -618,7 +621,7 @@ const WA = {
 const waOn = () => !!(WA.token && WA.phoneId && WA.owner);
 const fmtTel = t => t.length === 13 ? '+' + t.slice(0, 2) + ' (' + t.slice(2, 4) + ') ' + t.slice(4, 9) + '-' + t.slice(9) : '+' + t;
 const SETN = { dir: 'Diretoria', pes: 'Pessoas & Direitos', prev: 'Previdência', ges: 'Gestão & Consultoria', adm: 'Administrativo & Judicial', pnj: 'Projetos', net: 'Network Global', soc: 'Elos Social', edu: 'Educação', fin: 'Financeiro', com: 'Comercial', rh: 'RH', ti: 'TI & Dados' };
-const COLN = { leads: 'Futuros clientes', pedidos: 'Pedido de acesso', rast: 'Rastreamento de frotas', ped: 'Pedido de serviço', reg: 'Regularização de documentos', evp: 'Interesse em evento', forum: 'Mural de oportunidades', resp: 'Resposta no mural', perfil: 'Perfil profissional' };
+const COLN = { invn: 'Investidor · ficha de nível', leads: 'Futuros clientes', pedidos: 'Pedido de acesso', rast: 'Rastreamento de frotas', ped: 'Pedido de serviço', reg: 'Regularização de documentos', evp: 'Interesse em evento', forum: 'Mural de oportunidades', resp: 'Resposta no mural', perfil: 'Perfil profissional' };
 let WACFG = { avisos: true }, WAQ = [];
 async function waCfgLoad() { if (!pool || !dbReady) return; const r = await pool.query("SELECT data FROM elos_docs WHERE col='eloraWA' AND id='cfg'"); if (r.rows[0]) WACFG = Object.assign({ avisos: true }, r.rows[0].data); }
 async function waCfgSave() { if (pool && dbReady) await pool.query("INSERT INTO elos_docs(col,id,data,updated) VALUES('eloraWA','cfg',$1,$2) ON CONFLICT (col,id) DO UPDATE SET data=EXCLUDED.data, updated=EXCLUDED.updated", [WACFG, Date.now()]); }
@@ -648,7 +651,7 @@ async function eloraEvento(user, mode, col, id, data) {
       if (data.pid && pool) { const r = await pool.query("SELECT data->>'nome' AS n FROM elos_docs WHERE col='prj' AND id=$1", [data.pid]); if (r.rows[0]) pj = ' · projeto “' + r.rows[0].n + '”'; }
       eloraAviso('• ' + quem + ' (' + (SETN[data.setor] || data.setor || 'sistema') + ')' + pj + ': ' + data.texto);
     } else if (COLN[col.split('/')[0]] && mode !== 'delete') {
-      eloraAviso('📩 ' + COLN[col] + ' — ' + quem, ['leads', 'pedidos', 'rast', 'ped', 'reg'].includes(col));
+      eloraAviso('📩 ' + COLN[col] + ' — ' + quem, ['leads', 'pedidos', 'rast', 'ped', 'reg', 'invn'].includes(col.split('/')[0]));
     }
   } catch {}
 }
