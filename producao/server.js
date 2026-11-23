@@ -194,6 +194,14 @@ setInterval(() => { const now = Date.now(); for (const [k, h] of hits) if (!h.so
 const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
+/* endereço oficial: o domínio registrado elo360global.com.br (demais endereços redirecionam para ele) */
+const CANON = 'elo360global.com.br';
+app.use((req, res, next) => {
+  const h = String(req.headers.host || '').toLowerCase().split(':')[0];
+  if (h === CANON || h === 'localhost' || h === '127.0.0.1' || !h.includes('.') || req.path === '/health' || req.path.startsWith('/api') || !['GET', 'HEAD'].includes(req.method)) return next();
+  if (h === 'www.' + CANON || h.endsWith('.onrender.com')) return res.redirect(301, 'https://' + CANON + req.originalUrl);
+  next();
+});
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');

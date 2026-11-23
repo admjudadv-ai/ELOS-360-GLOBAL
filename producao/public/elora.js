@@ -12,7 +12,7 @@
   var PERFIS = { instagram: 'https://www.instagram.com/elos360global/', facebook: '', linkedin: '', tiktok: '', youtube: '', x: '', threads: '' };
 
   var D0 = document, W = window, IS_SYS = !!D0.getElementById('m') && typeof W.route === 'function';
-  var SITE_URL = location.origin + (IS_SYS ? '/sistema' : '/');
+  var SITE_URL = 'https://elo360global.com.br' + (IS_SYS ? '/sistema' : '/');
   var reduce = W.matchMedia && W.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var ss = { get: function (k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }, set: function (k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} } };
   var ls = { get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
