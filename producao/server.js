@@ -602,6 +602,42 @@ app.post('/api/elora', async (req, res) => {
 
 
 
+/* ---------- Minha Previdência: portal do cliente previdenciário (só vê o próprio cadastro vinculado pela coordenação) ---------- */
+function prevView(id, d) {
+  const hoje = new Date().toISOString().slice(0, 10), P = Array.isArray(d.parc) ? d.parc : [];
+  const venc = P.filter(x => !x.pago && x.venc && x.venc < hoje), aberto = P.filter(x => !x.pago);
+  const soma = a => a.reduce((s, x) => s + (Number(x.valor) || 0), 0);
+  return { id, n: d.n || 0, nome: d.nome || '', stc: d.stc || 'ativo', tipo: d.tipo || '',
+    debito: { vencido: soma(venc), aberto: soma(aberto), parcelasVencidas: venc.length },
+    contrato: d.contrato ? { forma: d.contrato.forma, valor: d.contrato.valor, n: d.contrato.n, pix: d.contrato.pix || '', emitido: d.contrato.emitido || 0 } : null,
+    parc: P.map(x => ({ k: x.k, valor: x.valor, venc: x.venc, pago: !!x.pago, pagoEm: x.pagoEm || 0 })),
+    proc: (Array.isArray(d.proc) ? d.proc : []).map(x => ({ num: x.num, tipo: x.tipo, orgao: x.orgao, fase: x.fase, sit: x.sit, at: x.at })),
+    ia: (Array.isArray(d.ia) ? d.ia : []).filter(x => x.pub).slice(-10),
+    pend: (Array.isArray(d.pend) ? d.pend : []).filter(x => !x.ok).map(x => x.t),
+    msgs: (Array.isArray(d.msgs) ? d.msgs : []).slice(-200) };
+}
+app.get('/api/meuprev', needDb, async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'entre na plataforma' });
+  const { rows } = await pool.query("SELECT id,data FROM elos_docs WHERE col='ped' AND data->>'area'='prev' AND data->>'cu'=$1 ORDER BY updated", [req.user.id]);
+  res.set('Cache-Control', 'no-store');
+  res.json(rows.map(r => prevView(r.id, r.data)));
+});
+app.post('/api/meuprev/:id/msg', needDb, checkNameId, async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'entre na plataforma' });
+  const txt = String((req.body || {}).txt || '').trim().slice(0, 2000);
+  if (!txt) return res.status(400).json({ error: 'mensagem vazia' });
+  if (limited('mprev:' + req.user.id, 60, 36e5)) return res.status(429).json({ error: 'Muitas mensagens nesta hora.' });
+  const { rows } = await pool.query("SELECT data FROM elos_docs WHERE col='ped' AND id=$1 AND data->>'cu'=$2", [req.params.id, req.user.id]);
+  if (!rows[0]) return res.status(404).json({ error: 'cadastro não encontrado' });
+  const m = { de: 'cli', nome: req.user.name || '', txt, t: Date.now() };
+  await pool.query("UPDATE elos_docs SET data = jsonb_set(data, '{msgs}', COALESCE(data->'msgs','[]'::jsonb) || $2::jsonb), updated=$3 WHERE col='ped' AND id=$1", [req.params.id, JSON.stringify([m]), Date.now()]);
+  audit(req.user.id, 'msg-previdencia', 'ped', req.params.id);
+  if (typeof eloraAviso === 'function') eloraAviso('💬 Mensagem do cliente previdenciário — ' + (rows[0].data.nome || '') + ': ' + txt.slice(0, 120), true);
+  broadcast('ped');
+  res.json({ ok: true });
+});
+function checkNameId(req, res, next) { if (!NAME_RE.test(req.params.id || '')) return res.status(400).json({ error: 'id inválido' }); next(); }
+
 /* ---------- controle de acessos: quem só entrou e quem entrou e se cadastrou (identificador anônimo, sem IP) ---------- */
 const VID_RE = /^[a-z0-9-]{16,64}$/i;
 async function visUpsert(vid, uid) {
