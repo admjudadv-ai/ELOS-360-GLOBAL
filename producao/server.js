@@ -524,6 +524,7 @@ const ELORA_SYS = [
   'Personalidade: acolhedora, elegante, objetiva e confiante, de nível internacional. Responda no idioma de quem escreve (padrão: português do Brasil), em até 8 linhas, salvo se pedirem mais detalhes. Use listas curtas quando ajudar.',
   'Você conhece a janela aberta e as janelas conectadas a ela (contexto abaixo). Ligue as informações entre setores e módulos: mostre como um lançamento ou decisão numa janela afeta as outras e indique onde continuar.',
   'Para oferecer um botão que abre uma janela, escreva [[abrir:ID|Rótulo]] usando um ID da lista de janelas (use "inicio" como string vazia: [[abrir:|Início]]). Para cadastro ou atendimento humano, ofereça [[whatsapp]] (WhatsApp de cadastro (11) 98165-3110). Ofereça no máximo 4 botões.',
+  'Contato principal da Elos para África e Moçambique: WhatsApp +258 85 761 3514 (https://wa.me/258857613514). A janela "mocambique" (Projetos Moçambique 2027–2030) traz urgências do país, 12 setores (o que Moçambique necessita e o que oferece), projetos para investidores ligados aos níveis da janela "investidores" e atualizações reais; quando houver pesquisa na web, use-a para dados atuais e cite fonte e data.',
   'Regras: não invente números, nomes de pessoas, clientes ou parceiros que não estejam no contexto. Não trate de outras empresas além da Elos 360° Global. Em temas jurídicos, previdenciários e tributários, dê orientação geral e indique o atendimento da equipe Elos para o caso concreto. Nunca peça senhas, CPF ou dados bancários no chat. A responsável institucional é a Coordenadora PSP.',
 ].join('\n');
 app.get('/api/elora', (req, res) => res.json({ on: !!AI_KEY }));
@@ -552,14 +553,78 @@ app.post('/api/elora', async (req, res) => {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': AI_KEY, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: AI_MODEL, max_tokens: 900, system: ELORA_SYS + '\n\n' + ctx, messages: msgs }),
+      body: JSON.stringify({ model: AI_MODEL, max_tokens: 900, system: ELORA_SYS + '\n\n' + ctx, messages: msgs, ...(b.web ? { tools: [MZ_WEB(3)] } : {}) }),
     });
-    const j = await r.json();
-    const text = (j.content || []).map(x => x.text || '').join('').trim();
+    let j = await r.json();
+    let text = (j.content || []).map(x => x.text || '').join('').trim();
+    if (b.web && !r.ok && r.status !== 429) { const q = await claudeElos({ model: AI_MODEL, max_tokens: 900, system: ELORA_SYS + '\n\n' + ctx, messages: msgs }); j = q.j; text = (j.content || []).map(x => x.text || '').join('').trim(); if (q.r.ok && text) return res.json({ text }); }
+    for (let i = 0; b.web && r.ok && j.stop_reason === 'pause_turn' && i < 3; i++) { const m2 = msgs.concat([{ role: 'assistant', content: j.content }]); const q = await claudeElos({ model: AI_MODEL, max_tokens: 900, system: ELORA_SYS + '\n\n' + ctx, messages: m2, tools: [MZ_WEB(3)] }); if (!q.r.ok) break; j = q.j; text = (text + ' ' + (j.content || []).map(x => x.text || '').join('')).trim(); }
     if (r.status === 429) return res.status(429).json({ error: 'Elora ocupada, tente em instantes.' });
     if (!r.ok || !text) return res.status(502).json({ error: 'Elora indisponível' });
     res.json({ text });
   } catch { res.status(502).json({ error: 'Elora indisponível' }); }
+});
+
+
+/* ---------- Projetos Moçambique 2027–2030: atualizações reais (pesquisa na web pela IA, guardadas no banco) ---------- */
+const MZ_WEB = n => ({ type: 'web_search_20250305', name: 'web_search', max_uses: n });
+async function claudeElos(body) {
+  const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': AI_KEY, 'anthropic-version': '2023-06-01' }, body: JSON.stringify(body) });
+  let j = {}; try { j = await r.json(); } catch {}
+  return { r, j };
+}
+const MZ_SET = ['saude', 'agua', 'humanitario', 'clima', 'energia', 'mineracao', 'agro', 'azul', 'turismo', 'educacao', 'infra', 'governo'];
+const MZ = { data: null, busy: null, lastTry: 0, err: '' };
+const mzT = (v, n) => String(v == null ? '' : v).replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, n);
+const mzU = u => /^https:\/\/[^\s"'<>]+$/i.test(String(u || '')) ? String(u).slice(0, 400) : '';
+function mzClean(o) {
+  const lv = x => ['Crítica', 'Alta', 'Média'].includes(x) ? x : 'Alta', st = x => MZ_SET.includes(x) ? x : 'governo';
+  const map = (a, n, f) => (Array.isArray(a) ? a : []).slice(0, n).map(f).filter(x => x.titulo);
+  return {
+    urgencias: map(o.urgencias, 6, x => ({ titulo: mzT(x.titulo, 140), setor: st(x.setor), nivel: lv(x.nivel), resumo: mzT(x.resumo, 320), data: mzT(x.data, 10), fonte: mzT(x.fonte, 60), url: mzU(x.url) })),
+    noticias: map(o.noticias, 8, x => ({ titulo: mzT(x.titulo, 140), setor: st(x.setor), resumo: mzT(x.resumo, 320), data: mzT(x.data, 10), fonte: mzT(x.fonte, 60), url: mzU(x.url) })),
+    oportunidades: map(o.oportunidades, 5, x => ({ titulo: mzT(x.titulo, 140), setor: st(x.setor), resumo: mzT(x.resumo, 320), fonte: mzT(x.fonte, 60), url: mzU(x.url) })),
+    at: new Date().toISOString(),
+  };
+}
+function mzRefresh() {
+  if (MZ.busy) return MZ.busy;
+  MZ.lastTry = Date.now();
+  MZ.busy = (async () => {
+    const prompt = 'Hoje é ' + new Date().toISOString().slice(0, 10) + '. Pesquise na web as notícias e dados MAIS RECENTES (de preferência dos últimos 60 dias) sobre Moçambique que importam para saúde, ajuda humanitária, clima e cheias, energia e gás, mineração, agricultura e segurança alimentar, pesca e portos, turismo, educação, infraestrutura e ambiente de negócios e investimentos.\n' +
+      'Responda SOMENTE com JSON válido, sem texto antes ou depois:\n{"urgencias":[{"titulo":"","setor":"","nivel":"Crítica|Alta|Média","resumo":"","data":"AAAA-MM-DD","fonte":"","url":""}],"noticias":[{"titulo":"","setor":"","resumo":"","data":"AAAA-MM-DD","fonte":"","url":""}],"oportunidades":[{"titulo":"","setor":"","resumo":"","fonte":"","url":""}]}\n' +
+      'Até 6 urgências, 8 notícias e 5 oportunidades de investimento ou cooperação. "setor" é um destes códigos: ' + MZ_SET.join(', ') + '.\n' +
+      'Regras: só fatos encontrados nas fontes, com a data da publicação; não invente números; resumos em português, até 40 palavras, com palavras próprias (sem copiar frases); não cite nomes de pessoas nem de empresas — use termos gerais (ex.: "consórcio de gás", "agência das Nações Unidas", "governo"); "fonte" é o nome do site e "url" o endereço da matéria.';
+    let msgs = [{ role: 'user', content: prompt }], out = '';
+    for (let i = 0; i < 4; i++) {
+      const { r, j } = await claudeElos({ model: AI_MODEL, max_tokens: 4000, messages: msgs, tools: [MZ_WEB(6)] });
+      if (!r.ok) throw new Error((j.error && j.error.message) || ('IA ' + r.status));
+      out += (j.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
+      if (j.stop_reason !== 'pause_turn') break;
+      msgs.push({ role: 'assistant', content: j.content });
+    }
+    const a = out.indexOf('{'), z = out.lastIndexOf('}');
+    if (a < 0 || z < a) throw new Error('Resposta sem dados');
+    const data = mzClean(JSON.parse(out.slice(a, z + 1)));
+    if (!data.urgencias.length && !data.noticias.length) throw new Error('Nenhuma atualização encontrada');
+    MZ.data = data; MZ.err = '';
+    if (pool && dbReady) await pool.query("INSERT INTO elos_docs(col,id,data,updated) VALUES('mzlive','atual',$1,$2) ON CONFLICT (col,id) DO UPDATE SET data=EXCLUDED.data, updated=EXCLUDED.updated", [data, Date.now()]).catch(() => {});
+    return data;
+  })().catch(e => { MZ.err = String(e.message || e).slice(0, 200); throw e; }).finally(() => { MZ.busy = null; });
+  return MZ.busy;
+}
+app.get('/api/mz', async (req, res) => {
+  if (!MZ.data && pool && dbReady) { try { const r = await pool.query("SELECT data FROM elos_docs WHERE col='mzlive' AND id='atual'"); if (r.rows[0]) MZ.data = r.rows[0].data; } catch {} }
+  const d = MZ.data, stale = !d || Date.now() - new Date(d.at).getTime() > 6 * 36e5;
+  if (stale && AI_KEY && !MZ.busy && Date.now() - MZ.lastTry > 30 * 6e4) mzRefresh().catch(() => {});
+  res.set('Cache-Control', 'no-cache');
+  res.json({ ai: !!AI_KEY, atualizando: !!MZ.busy, erro: MZ.err || '', data: d || null });
+});
+app.post('/api/mz/refresh', async (req, res) => {
+  if (!(req.user && req.user.isOwner)) return res.status(403).json({ erro: 'somente a coordenação' });
+  if (!AI_KEY) return res.status(503).json({ erro: 'IA não configurada no servidor.' });
+  if (limited('mz:' + req.user.id, 4, 36e5)) return res.status(429).json({ erro: 'Limite de atualizações nesta hora.' });
+  try { res.json({ data: await mzRefresh() }); } catch { res.status(502).json({ erro: MZ.err || 'Falha ao atualizar' }); }
 });
 
 /* ---------- tradução automática para todos os idiomas (cache compartilhado no banco) ---------- */

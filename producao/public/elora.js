@@ -29,15 +29,16 @@
     safe(function () { mapItems().forEach(function (x) { addWin(x[0], x[1], x[2], x[3]); }); });
     safe(function () { M.forEach(function (m) { addWin(m.id, m.i, m.n, 'Módulo de gestão integrado'); }); });
     safe(function () { SET.forEach(function (s) { addWin('s-' + s[0], s[2], s[1], 'Setor: tarefas, módulos e equipe'); }); });
-    [['investidores', '💎', 'Investidores · Níveis Elos 360°', 'Sete níveis de R$ 15.000 a US$ 1.000.000, simulador, jornada e ficha'], ['', '🏠', 'Início', 'Banner com todos os setores e caminhos rápidos'], ['mapa', '🗺️', 'Mapa do sistema', 'Todas as janelas por objetivo'], ['eventos', '🌍', 'Eventos Globais', 'Congressos, feiras, exposições e simpósios'], ['medicina', '🩺', 'Congressos médicos', 'Todas as especialidades no mundo'], ['rastreamento', '🚚', 'Transportadoras e logística', 'Rastreamento de frotas em todo o Brasil'], ['comunidade', '🌎', 'Comunidade Profissional', 'Áreas profissionais do mundo em conexão'], ['oport', '💼', 'Mural de Oportunidades', 'Negócios, parcerias e investimentos'], ['one', '🌐', 'Elos One System 360°', 'Todos os setores numa visão integrada'], ['terras', '🧲', 'Terras raras no Brasil', 'Projetos e negociações'], ['pasta-andamento', '🔄', 'Projetos em andamento', 'Pasta integrada de projetos'], ['pasta-novo', '🆕', 'Novos projetos', 'Pasta integrada de projetos'], ['evminhas', '📌', 'Meus eventos', 'Interesses e contratações em eventos'], ['ti', '💻', 'TI & Dados', 'Servidor, segurança e dados']].forEach(function (x) { addWin(x[0], x[1], x[2], x[3]); });
+    [['mocambique', '🇲🇿', 'Projetos Moçambique 2027–2030', 'Urgências ao vivo, 12 setores, projetos para investidores e WhatsApp +258 85 761 3514'], ['investidores', '💎', 'Investidores · Níveis Elos 360°', 'Sete níveis de R$ 15.000 a US$ 1.000.000, simulador, jornada e ficha'], ['', '🏠', 'Início', 'Banner com todos os setores e caminhos rápidos'], ['mapa', '🗺️', 'Mapa do sistema', 'Todas as janelas por objetivo'], ['eventos', '🌍', 'Eventos Globais', 'Congressos, feiras, exposições e simpósios'], ['medicina', '🩺', 'Congressos médicos', 'Todas as especialidades no mundo'], ['rastreamento', '🚚', 'Transportadoras e logística', 'Rastreamento de frotas em todo o Brasil'], ['comunidade', '🌎', 'Comunidade Profissional', 'Áreas profissionais do mundo em conexão'], ['oport', '💼', 'Mural de Oportunidades', 'Negócios, parcerias e investimentos'], ['one', '🌐', 'Elos One System 360°', 'Todos os setores numa visão integrada'], ['terras', '🧲', 'Terras raras no Brasil', 'Projetos e negociações'], ['pasta-andamento', '🔄', 'Projetos em andamento', 'Pasta integrada de projetos'], ['pasta-novo', '🆕', 'Novos projetos', 'Pasta integrada de projetos'], ['evminhas', '📌', 'Meus eventos', 'Interesses e contratações em eventos'], ['ti', '💻', 'TI & Dados', 'Servidor, segurança e dados']].forEach(function (x) { addWin(x[0], x[1], x[2], x[3]); });
   }
 
   /* ---------- conexões entre janelas e módulos ---------- */
   var REL = {
-    investidores: ['network', 'con', 'ban', 'fin', 'jur', 'programas', 'oport'],
+    mocambique: ['investidores', 'pais-MZ', 'terrasafrica', 'prog-min', 'mulheres', 'energia', 'engenharia', 'social', 'fiscal', 'network'],
+    investidores: ['mocambique', 'network', 'con', 'ban', 'fin', 'jur', 'programas', 'oport'],
     '': ['network', 'eventos', 'fiscal', 'oport', 'previdencia', 'programas', 'comunidade'],
     mapa: ['', 'bemvindo', 'network', 'eventos', 'fiscal', 'contato'],
-    network: ['investidores', 'pasta-andamento', 'pasta-novo', 'novo', 'central', 'comunidade', 'oport', 'crm'],
+    network: ['mocambique', 'investidores', 'pasta-andamento', 'pasta-novo', 'novo', 'central', 'comunidade', 'oport', 'crm'],
     pasta: ['network', 'novo', 'central', 'setores', 'painel'], novo: ['network', 'setores', 'central', 'fin', 'con'],
     p: ['network', 'central', 'setores', 'fin', 'con', 'doc', 'painel'],
     central: ['network', 'setores', 'painel', 'one'], painel: ['fin', 'cob', 'ban', 'central', 'network', 'one'],
@@ -55,8 +56,8 @@
     oport: ['comunidade', 'network', 'crm', 'mercados'], comunidade: ['oport', 'perfil', 'network'], g: ['comunidade', 'oport', 'perfil'], area: ['comunidade', 'oport', 'perfil'],
     perfil: ['comunidade', 'bemvindo', 'oport'], bemvindo: ['perfil', 'mapa', 'contato'],
     programas: ['prog-min', 'prog-mul', 'social', 'terras', 's-soc', 'one'], 'prog-min': ['cad', 'terras', 'terrasafrica', 'mulheres', 'programas'],
-    'prog-mul': ['mulheres', 's-edu', 's-soc', 'programas'], mulheres: ['prog-mul', 'prog-min', 'social'],
-    terras: ['terrasafrica', 'cad', 'prog-min', 'mercados'], terrasafrica: ['terras', 'cad', 'paises'],
+    'prog-mul': ['mulheres', 's-edu', 's-soc', 'programas'], mulheres: ['mocambique', 'prog-mul', 'prog-min', 'social'],
+    terras: ['terrasafrica', 'cad', 'prog-min', 'mercados'], terrasafrica: ['mocambique', 'terras', 'cad', 'paises'],
     social: ['s-soc', 'eve', 'eventos', 'programas'], festas: ['eventos', 'for', 'contato'],
     engenharia: ['energia', 'for', 'con', 'oport'], energia: ['engenharia', 'paises', 'oport'],
     documentos: ['doc', 'previdencia', 'contato'], paises: ['pais', 'fiscal', 'mercados', 'social'], pais: ['fiscal', 'mercados', 'paises', 'oport'],
@@ -87,6 +88,7 @@
     var u = encodeURIComponent(SITE_URL), tx = encodeURIComponent('Elos 360° Global — Conexões que transformam vidas');
     return [
       ['wa', 'WhatsApp · Cadastro', '#25D366', waLink(), 'wa'],
+      ['wa', 'WhatsApp principal · África e Moçambique +258 85 761 3514', '#0c7a46', 'https://wa.me/258857613514?text=' + encodeURIComponent('Olá, Elos 360° Global!'), ''],
       ['ig', 'Instagram @elos360global', 'linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7)', PERFIS.instagram || 'https://www.instagram.com/', PERFIS.instagram ? '' : 'copy'],
       ['fb', 'Facebook', '#1877F2', PERFIS.facebook || 'https://www.facebook.com/sharer/sharer.php?u=' + u, ''],
       ['in', 'LinkedIn', '#0A66C2', PERFIS.linkedin || 'https://www.linkedin.com/sharing/share-offsite/?url=' + u, ''],
@@ -313,7 +315,7 @@
     while (msgs.length && msgs[0].role !== 'user') msgs.shift();
     var done = function (t) { BUSY = false; H.push({ r: 'a', t: t }); saveH(); paint(); speak(t); };
     if (AI_ON === false) { done(local(q)); return; }
-    fetch('/api/elora', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-Elos': '1' }, body: JSON.stringify({ messages: msgs, ctx: ctx() }) })
+    fetch('/api/elora', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-Elos': '1' }, body: JSON.stringify({ messages: msgs, ctx: ctx(), web: /^#(mocambique|terrasafrica|mulheres)/.test(location.hash) || /mo[cç]ambique|mozambique|maputo|not[ií]cia|atualiz|hoje|agora|recente|[uú]ltim/i.test(q) }) })
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, s: r.status, j: j }; }); })
       .then(function (x) {
         if (x.ok && x.j.text) { AI_ON = true; done(x.j.text); return; }
