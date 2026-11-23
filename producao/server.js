@@ -213,21 +213,21 @@ function realIp(req) {
 }
 app.use((req, res, next) => { try { Object.defineProperty(req, 'ip', { value: realIp(req), configurable: true }); } catch (e) {} next(); });
 /* ---------- escudo de segurança: bloqueia varreduras de hackers, abuso e endereços suspeitos ---------- */
-const SEC = { bans: new Map(), strikes: new Map(), hits: new Map(), blocked: 0, banned: 0, ev: [] };
+const SEC = { logged: new Set(), bans: new Map(), strikes: new Map(), hits: new Map(), blocked: 0, banned: 0, ev: [] };
 const SEC_BAD = /(\.env|\.git\/|\.svn|\.ht(access|passwd)|wp-(admin|login|content|includes)|xmlrpc\.php|phpmyadmin|pma\/|adminer|\.php\d?$|\.asp(x)?$|\.jsp$|cgi-bin|\.aws\/|\.ssh\/|id_rsa|server-status|\.ds_store|etc\/passwd|\/vendor\/phpunit|boaform|\/actuator|\.sql$|\.bak$|\/backup)/i;
 const SEC_INJ = /(<script|%3cscript|union(\s|%20|\+)+select|\.\.\/|\.\.%2f|%00|\bsleep\(|benchmark\(|\/etc\/passwd|;\s*(drop|shutdown)\s)/i;
 const SEGURANCA = require('./seguranca');
 const AVISOS = require('./avisos');
 function secBody(b) { const h = []; SEGURANCA.scanValue(b, h, 'entrada', 0); return h.some(x => x.nivel === 'critico' || x.nivel === 'alto'); }
 function secLog(ip, why, path) { SEC.ev.push({ t: Date.now(), ip: String(ip || '').replace(/\d+$/, 'x'), why, path: String(path || '').slice(0, 80) }); if (SEC.ev.length > 100) SEC.ev.shift(); if (typeof audit === 'function') audit(null, 'seguranca:' + why, null, String(path || '').slice(0, 80)); }
-function secStrike(ip, why, path) { if (isCloudflare(ip) || isPrivIp(ip)) { SEC.blocked++; return; }
+function secStrike(ip, why, path) { if (isCloudflare(ip) || isPrivIp(ip)) { SEC.blocked++; return; } console.warn('[escudo] alerta', why, ip, String(path || '').slice(0, 60));
   SEC.blocked++; secLog(ip, why, path);
   const now = Date.now(), a = (SEC.strikes.get(ip) || []).filter(t => now - t < 10 * 6e4); a.push(now); SEC.strikes.set(ip, a);
   if (a.length >= 8) { SEC.bans.set(ip, now + 60 * 6e4); SEC.banned++; secLog(ip, 'ip-bloqueado-1h', path); }
 }
 app.use((req, res, next) => {
   const ip = req.ip || '', now = Date.now(), ban = SEC.bans.get(ip);
-  if (ban && ban > now) return res.status(403).type('text').send('Acesso bloqueado temporariamente por segurança.');
+  if (ban && ban > now) { if (!SEC.logged.has(ip)) { SEC.logged.add(ip); console.warn('[escudo] bloqueado', ip, 'xff=', req.get('x-forwarded-for'), 'cf=', req.get('cf-connecting-ip')); } return res.status(403).type('text').send('Acesso bloqueado temporariamente por segurança.'); }
   if (ban) SEC.bans.delete(ip);
   let raw = req.originalUrl || ''; try { raw += ' ' + decodeURIComponent(raw); } catch {}
   if (SEC_BAD.test(req.path)) { secStrike(ip, 'varredura', req.path); return res.status(404).type('text').send('Não encontrado'); }
