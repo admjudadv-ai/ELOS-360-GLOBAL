@@ -1,0 +1,3 @@
+(function(){var q=new URLSearchParams(location.search),F=(q.get('f')||'').split(',').filter(function(x){return /^[0-9a-z_]+\.jpg$/.test(x)});var T='https://www.instagram.com';var st=document.getElementById('st');
+if(!window.opener){st.textContent='Abra esta página a partir do Instagram.';return}
+Promise.all(F.map(function(f){return fetch('/social/'+f).then(function(r){return r.blob()}).then(function(b){return {name:f,blob:b}})})).then(function(L){window.opener.postMessage({elosPosts:L},T);st.textContent='Imagens enviadas ('+L.length+').';setTimeout(function(){window.close()},800)}).catch(function(e){st.textContent='Erro: '+e})})();
