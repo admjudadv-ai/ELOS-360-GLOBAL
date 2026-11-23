@@ -227,7 +227,7 @@ function secStrike(ip, why, path) { if (isCloudflare(ip) || isPrivIp(ip)) { SEC.
 }
 app.use((req, res, next) => {
   const ip = req.ip || '', now = Date.now(), ban = SEC.bans.get(ip);
-  if (ban && ban > now) { if (!SEC.logged.has(ip)) { SEC.logged.add(ip); console.warn('[escudo] bloqueado', ip, 'xff=', req.get('x-forwarded-for'), 'cf=', req.get('cf-connecting-ip')); } return res.status(403).type('text').send('Acesso bloqueado temporariamente por segurança.'); }
+  if (ban && ban > now) { if (!SEC.logged.has(ip)) { SEC.logged.add(ip); console.warn('[escudo] bloqueado', ip, 'xff=', req.get('x-forwarded-for'), 'cf=', req.get('cf-connecting-ip')); } return res.status(403).set('Cache-Control', 'no-store').type('text').send('Acesso bloqueado temporariamente por segurança.'); }
   if (ban) SEC.bans.delete(ip);
   let raw = req.originalUrl || ''; try { raw += ' ' + decodeURIComponent(raw); } catch {}
   if (SEC_BAD.test(req.path)) { secStrike(ip, 'varredura', req.path); return res.status(404).type('text').send('Não encontrado'); }
