@@ -73,7 +73,8 @@
 
   window.dossie = function () {
     if (typeof OWN !== 'undefined' && !OWN) return locked('Acesso exclusivo da CEO da Elos 360° Global.');
-    render();
+    if (!D.t || Date.now() - D.t > 3000) { D.st = null; D.docs = null; D.pend = null; D.aud = null; }
+    D.t = Date.now(); render();
   };
   window.dossieAba = a => { D.aba = a; render(); };
   window.dossieCat = c => { D.cat = c; render(); };
