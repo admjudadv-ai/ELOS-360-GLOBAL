@@ -84,6 +84,13 @@ async function migrate() {
       console.log('[elos] dados iniciais carregados:', seed.length);
     }
   }
+  /* Expo África Brasil 2026: projetos por país entram uma vez; edições da CEO nunca são sobrescritas */
+  const expoFile = path.join(__dirname, 'expo26.json');
+  if (fs.existsSync(expoFile)) {
+    for (const d of JSON.parse(fs.readFileSync(expoFile, 'utf8'))) {
+      await pool.query('INSERT INTO elos_docs(col,id,data,updated) VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING', [d.col, d.id, d.data, Date.now()]);
+    }
+  }
   /* registros fixos garantidos (entram mesmo com o banco já populado) */
   const FIXOS = [{ col: 'evt', id: 'ev27-feira-mulher-lafaiete', data: { nome: '2ª Edição da Feira Empreendedora da Mulher', tipo: 'feira', formato: 'Presencial', pais: '🇧🇷 Brasil', cidade: 'Conselheiro Lafaiete/MG · Salão de Eventos do Hotel Minas Platinum', ini: '2027-05-06', fim: '2027-05-07', area: 'Empreendedorismo feminino', org: 'Rede Mulheres Incríveis (parceira da Elos)', setor: 'com', link: 'https://redemulheresincriveis.com.br/encontros', desc: 'Elos 360° Global e DMPS Global presentes, com presença confirmada. Abertura em 06/05/2027, às 19h. Realização: Rede Mulheres Incríveis, parceira aprovada da Elos.', t: Date.now() } }, { col: 'agd', id: 'feira-mulheres-2027', data: { titulo: '2ª Feira Mulheres Empreendedoras · presença confirmada Elos 360° Global e DMPS Global', tipo: 'evento', data: '2027-05-06', hora: '19:00', local: 'Salão de Eventos do Hotel Minas Platinum · Conselheiro Lafaiete/MG', descricao: 'A Elos 360° Global e a DMPS Global estão presentes, com presença confirmada. 6 e 7 de maio de 2027. Realização: Rede Mulheres Incríveis, parceira aprovada da Elos. Inscrições abertas para expositoras.', home: true, importante: true, status: 'agendado' } }];
   for (const d of FIXOS) await pool.query('INSERT INTO elos_docs(col,id,data,updated) VALUES($1,$2,$3,$4) ON CONFLICT (col,id) DO UPDATE SET data=EXCLUDED.data', [d.col, d.id, d.data, Date.now()]);
@@ -127,6 +134,8 @@ const RULES = {
   agd: { read: 'owner', write: 'owner' },
   agdlog: { read: 'owner', write: 'owner' },
   secscan: { read: 'owner', write: 'owner' },
+  /* Expo África Brasil 2026: projetos por país no Network — todos com login leem, somente a CEO (coordenação) grava */
+  expo26: { read: 'view', write: 'owner' },
 };
 for (const c of ['prj', 'tsk', 'msg', 'evp', 'parceiros', 'jovens', 'empresas', 'vagas', 'projetos', 'avaliacoes', 'atividade', 'paises']) {
   RULES[c] = { read: 'interact', write: 'interact' };
