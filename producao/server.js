@@ -115,6 +115,8 @@ async function migrate() {
 const LV = { anon: 0, view: 1, interact: 2, admin: 3, owner: 4 };
 const DEFAULT_RULE = { read: 'view', write: 'interact' };
 const RULES = {
+  /* Dossiê da CEO: nunca pela API genérica (nível inexistente = ninguém); só pelas rotas /api/dossie */
+  dossie: { read: 'ceo', write: 'ceo' }, dossiearq: { read: 'ceo', write: 'ceo' }, dossiecfg: { read: 'ceo', write: 'ceo' },
   perm: { read: 'view', write: 'admin' },
   pedidos: { read: 'admin', write: 'admin' },
   'pedidos/{self}': { read: 'view', write: 'view' },
@@ -282,7 +284,7 @@ app.use((req, res, next) => {
   res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self' mailto:");
   next();
 });
-app.use(express.json({ limit: '1mb', verify: (req, res, buf) => { if (req.originalUrl.startsWith('/api/whatsapp')) req.rawBody = buf; } }));
+app.use(express.json({ limit: '1mb', type: req => !String(req.originalUrl || '').startsWith('/api/dossie') && /json/i.test(String(req.headers['content-type'] || '')), verify: (req, res, buf) => { if (req.originalUrl.startsWith('/api/whatsapp')) req.rawBody = buf; } }));
 
 /* CSRF: toda escrita exige o cabeçalho X-Elos (navegadores não o enviam entre sites sem CORS) */
 app.use('/api', (req, res, next) => {
@@ -1229,7 +1231,7 @@ async function eloraCEO(system, msgs, user, web) {
 /* ---------- antivírus da plataforma: varredura diária e bloqueio de conteúdo malicioso na entrada ---------- */
 const VARREDURA = SEGURANCA.create({
   nome: 'Elos 360° Global', base: __dirname,
-  listDocs: async () => { if (!pool || !dbReady) return []; const { rows } = await pool.query("SELECT col,id,data FROM elos_docs WHERE col NOT IN ('secscan')"); return rows; },
+  listDocs: async () => { if (!pool || !dbReady) return []; const { rows } = await pool.query("SELECT col,id,data FROM elos_docs WHERE col NOT IN ('secscan','dossie','dossiearq','dossiecfg')"); return rows; },
   load: async () => { if (!pool || !dbReady) return null; const r = await pool.query("SELECT data FROM elos_docs WHERE col='secscan' AND id='estado'"); return r.rows[0] ? r.rows[0].data : null; },
   save: async (o) => { if (pool && dbReady) await pool.query("INSERT INTO elos_docs(col,id,data,updated) VALUES('secscan','estado',$1,$2) ON CONFLICT (col,id) DO UPDATE SET data=EXCLUDED.data, updated=EXCLUDED.updated", [o, Date.now()]); },
   config: () => [
@@ -1245,6 +1247,7 @@ const VARREDURA = SEGURANCA.create({
 app.get('/api/admin/seguranca', onlyOwner, async (req, res) => { try { res.json(await VARREDURA.status()); } catch (e) { res.status(500).json({ error: 'falha' }); } });
 app.post('/api/admin/seguranca/varrer', onlyOwner, async (req, res) => { if (limited('varrer:' + req.user.id, 6, 36e5)) return res.status(429).json({ error: 'Aguarde para varrer de novo.' }); try { res.json(await VARREDURA.run('pedida pela coordenação')); } catch (e) { res.status(500).json({ error: 'falha na varredura' }); } });
 
+require('./dossie')(app, { pool, audit, limited, ownerEmails: OWNER_EMAILS });
 app.use('/api', (req, res) => res.status(404).json({ error: 'não encontrado' }));
 
 /* sistema Elos */
