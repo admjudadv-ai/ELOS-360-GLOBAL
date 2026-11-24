@@ -85,8 +85,8 @@ async function migrate() {
     }
   }
   /* registros fixos garantidos (entram mesmo com o banco já populado) */
-  const FIXOS = [{ col: 'evt', id: 'ev27-feira-mulher-lafaiete', data: { nome: '2ª Edição da Feira Empreendedora da Mulher', tipo: 'feira', formato: 'Presencial', pais: '🇧🇷 Brasil', cidade: 'Conselheiro Lafaiete/MG · Salão de Eventos do Hotel Minas Platinum', ini: '2027-05-06', fim: '2027-05-07', area: 'Empreendedorismo feminino', org: 'Rede Mulheres Incríveis (parceira da Elos)', setor: 'com', link: 'https://redemulheresincriveis.com.br/encontros', desc: 'Presença da Elos 360° Global confirmada. Abertura em 06/05/2027, às 19h. Realização: Rede Mulheres Incríveis, parceira aprovada da Elos.', t: Date.now() } }];
-  for (const d of FIXOS) await pool.query('INSERT INTO elos_docs(col,id,data,updated) VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING', [d.col, d.id, d.data, Date.now()]);
+  const FIXOS = [{ col: 'evt', id: 'ev27-feira-mulher-lafaiete', data: { nome: '2ª Edição da Feira Empreendedora da Mulher', tipo: 'feira', formato: 'Presencial', pais: '🇧🇷 Brasil', cidade: 'Conselheiro Lafaiete/MG · Salão de Eventos do Hotel Minas Platinum', ini: '2027-05-06', fim: '2027-05-07', area: 'Empreendedorismo feminino', org: 'Rede Mulheres Incríveis (parceira da Elos)', setor: 'com', link: 'https://redemulheresincriveis.com.br/encontros', desc: 'Elos 360° Global e DMPS Global presentes, com presença confirmada. Abertura em 06/05/2027, às 19h. Realização: Rede Mulheres Incríveis, parceira aprovada da Elos.', t: Date.now() } }, { col: 'agd', id: 'feira-mulheres-2027', data: { titulo: '2ª Feira Mulheres Empreendedoras · presença confirmada Elos 360° Global e DMPS Global', tipo: 'evento', data: '2027-05-06', hora: '19:00', local: 'Salão de Eventos do Hotel Minas Platinum · Conselheiro Lafaiete/MG', descricao: 'A Elos 360° Global e a DMPS Global estão presentes, com presença confirmada. 6 e 7 de maio de 2027. Realização: Rede Mulheres Incríveis, parceira aprovada da Elos. Inscrições abertas para expositoras.', home: true, importante: true, status: 'agendado' } }];
+  for (const d of FIXOS) await pool.query('INSERT INTO elos_docs(col,id,data,updated) VALUES($1,$2,$3,$4) ON CONFLICT (col,id) DO UPDATE SET data=EXCLUDED.data', [d.col, d.id, d.data, Date.now()]);
   dbReady = true;
 }
 
@@ -1227,8 +1227,7 @@ app.use('/api', (req, res) => res.status(404).json({ error: 'não encontrado' })
 /* sistema Elos */
 /* imagens da parceria Rede Mulheres Incríveis: buscadas na origem oficial e guardadas em memória */
 const PARC_IMG = {
-  'rede-mulheres-logo.png': 'https://media.base44.com/images/public/6af906f767b1b105d1a39c34/bb0301dcb_logo-rede-mulheres-incriveis.png',
-  'feira-mulher-2027.jpg': 'https://media.base44.com/images/public/6af91d533c709b5127aaa0e6/c72cf9094_2bcd552c-48d7-458d-8890-009e429f41a3.jpeg'
+  'rede-mulheres-logo.png': 'https://media.base44.com/images/public/6af906f767b1b105d1a39c34/bb0301dcb_logo-rede-mulheres-incriveis.png'
 };
 const PARC_CACHE = new Map();
 app.get('/parceiros/:arq', async (req, res, next) => {
