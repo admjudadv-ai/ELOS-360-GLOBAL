@@ -84,6 +84,9 @@ async function migrate() {
       console.log('[elos] dados iniciais carregados:', seed.length);
     }
   }
+  /* registros fixos garantidos (entram mesmo com o banco já populado) */
+  const FIXOS = [{ col: 'evt', id: 'ev27-feira-mulher-lafaiete', data: { nome: '2ª Edição da Feira Empreendedora da Mulher', tipo: 'feira', formato: 'Presencial', pais: '🇧🇷 Brasil', cidade: 'Conselheiro Lafaiete/MG · Salão de Eventos do Hotel Minas Platinum', ini: '2027-05-06', fim: '2027-05-07', area: 'Empreendedorismo feminino', org: 'Rede Mulheres Incríveis (parceira da Elos)', setor: 'com', link: 'https://redemulheresincriveis.com.br/encontros', desc: 'Presença da Elos 360° Global confirmada. Abertura em 06/05/2027, às 19h. Realização: Rede Mulheres Incríveis, parceira aprovada da Elos.', t: Date.now() } }];
+  for (const d of FIXOS) await pool.query('INSERT INTO elos_docs(col,id,data,updated) VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING', [d.col, d.id, d.data, Date.now()]);
   dbReady = true;
 }
 
@@ -1222,6 +1225,20 @@ app.post('/api/admin/seguranca/varrer', onlyOwner, async (req, res) => { if (lim
 app.use('/api', (req, res) => res.status(404).json({ error: 'não encontrado' }));
 
 /* sistema Elos */
+/* imagens da parceria Rede Mulheres Incríveis: buscadas na origem oficial e guardadas em memória */
+const PARC_IMG = {
+  'rede-mulheres-logo.png': 'https://media.base44.com/images/public/6af906f767b1b105d1a39c34/bb0301dcb_logo-rede-mulheres-incriveis.png',
+  'feira-mulher-2027.jpg': 'https://media.base44.com/images/public/6af91d533c709b5127aaa0e6/c72cf9094_2bcd552c-48d7-458d-8890-009e429f41a3.jpeg'
+};
+const PARC_CACHE = new Map();
+app.get('/parceiros/:arq', async (req, res, next) => {
+  const src = PARC_IMG[req.params.arq]; if (!src) return next();
+  try {
+    let c = PARC_CACHE.get(req.params.arq);
+    if (!c) { const r = await fetch(src, { signal: AbortSignal.timeout(15000) }); if (!r.ok) throw new Error('origem ' + r.status); c = { type: r.headers.get('content-type') || (src.endsWith('.png') ? 'image/png' : 'image/jpeg'), buf: Buffer.from(await r.arrayBuffer()) }; PARC_CACHE.set(req.params.arq, c); }
+    res.set({ 'Content-Type': c.type, 'Cache-Control': 'public, max-age=86400' }).send(c.buf);
+  } catch (e) { res.status(404).end(); }
+});
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'site.html')));
 app.get('/sw.js', (req, res) => { res.set('Cache-Control', 'no-cache'); res.set('Service-Worker-Allowed', '/'); res.sendFile(path.join(__dirname, 'public', 'sw.js')); });
 /* verificação do domínio pelo aplicativo Android (Google Play); acrescentar a impressão digital da Google Play após o primeiro envio */

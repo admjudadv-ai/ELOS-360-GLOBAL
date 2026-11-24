@@ -73,6 +73,27 @@ footer{padding:40px 0;border-top:1px solid #1d3763;color:var(--muted);font-size:
 <div class="hero" id="inicio"><img src="banner.jpg" alt="Banner Elos 360° Global — Conexões que transformam vidas, com as oito áreas de atuação" width="1536" height="1024">
 <div class="cta"><a class="btn gold" href="/sistema#bemvindo">Entrar e fazer meu cadastro</a><a class="btn line" href="/sistema#contato">Quero ser cliente</a></div></div>
 
+<style>
+.parc{padding:30px 0 6px}
+.parc .eb{text-align:center}
+.parc-g{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));margin-top:14px}
+.pc{display:flex;gap:14px;align-items:center;text-decoration:none;color:var(--ink);background:linear-gradient(180deg,#0f2b5c,#0a1f45);border:1px solid #e3b04b88;border-radius:16px;padding:14px 16px;box-shadow:0 10px 26px #00000040}
+.pc:hover{border-color:var(--gold)}
+.pc img{flex:none;border-radius:12px;object-fit:cover;background:#fff}
+.pc b{display:block;font:800 16px var(--display);color:#fff}
+.pc small{display:block;color:var(--muted);font-size:14px;line-height:1.35;margin-top:3px}
+.pc .bd{display:inline-block;font:800 11px var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--navy);background:var(--gold);border-radius:999px;padding:3px 9px;margin-bottom:5px}
+.pc.dm{border-color:#c08a5a;background:linear-gradient(135deg,#3a0c18,#5a1424)}
+.pc.dm .bd{background:#d9a273}
+.pc.dm img{background:#3a0c18}
+</style>
+<section class="parc" id="parcerias" aria-label="Parcerias"><div class="wrap"><p class="eb">Parcerias Elos 360° Global</p>
+<div class="parc-g">
+<a class="pc dm" href="https://www.dmps.com.br" target="_blank" rel="noopener"><img src="/parceiros/dmps-global.jpg" alt="Logo DMPS Global — Legal &amp; Business Advisory" width="120" height="80"><div><span class="bd">Parceira estratégica</span><b>DMPS Global</b><small>Legal &amp; Business Advisory · cliente, parceira e investidora de nível máximo da Elos</small></div></a>
+<a class="pc" href="https://redemulheresincriveis.com.br/diretorio" target="_blank" rel="noopener"><img src="/parceiros/rede-mulheres-logo.png" alt="Logo Rede Mulheres Incríveis" width="72" height="72" style="border-radius:50%;object-fit:contain"><div><span class="bd">Parceria aprovada</span><b>Rede Mulheres Incríveis</b><small>Comunidade de conexões, oportunidades e negócios para mulheres em todo o Brasil</small></div></a>
+<a class="pc" href="/sistema#eventos"><img src="/parceiros/feira-mulher-2027.jpg" alt="Cartaz da 2ª Feira Empreendedora da Mulher" width="84" height="84"><div><span class="bd">✓ Presença confirmada</span><b>2ª Feira Empreendedora da Mulher</b><small>6 e 7 de maio de 2027 · Hotel Minas Platinum, Conselheiro Lafaiete/MG</small></div></a>
+</div></div></section>
+
 <section id="agenda-home" style="display:none;padding-bottom:0"><div class="wrap"><p class="eb">Agenda Elos 360° Global</p><h2>Próximos destaques</h2><div id="agh" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:12px"></div></div></section>
 <script>(function(){var T={reuniao:'🤝',compromisso:'📌',financeiro:'💰',prazo:'⚖️',evento:'🎤',tarefa:'✅',outro:'🗓️'};function e(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}fetch('/api/agenda/home').then(function(r){return r.json()}).then(function(j){var L=(j&&j.eventos)||[];if(!L.length)return;document.getElementById('agh').innerHTML=L.map(function(x){var d='';try{d=new Date(x.data+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'long'})}catch(z){d=x.data}return '<div style="border:1px solid rgba(184,134,11,.45);border-top:4px solid #e8b84a;border-radius:14px;padding:14px;background:#fff;box-shadow:0 8px 20px rgba(7,20,42,.08)"><div style="font-size:24px">'+(T[x.tipo]||'🗓️')+'</div><b style="display:block;margin:4px 0;color:#07142a">'+e(x.titulo)+'</b><small style="color:#64748b">'+e(d)+(x.hora?' · '+e(x.hora):'')+(x.local?' · '+e(x.local):'')+'</small>'+(x.descricao?'<p style="margin:6px 0 0;font-size:.9rem;color:#334155">'+e(x.descricao)+'</p>':'')+'</div>'}).join('');document.getElementById('agenda-home').style.display=''}).catch(function(){})})();</script>
 <section id="quem"><div class="wrap two">
@@ -115,6 +136,7 @@ footer{padding:40px 0;border-top:1px solid #1d3763;color:var(--muted);font-size:
 <div><b>Mining Indaba · Cidade do Cabo</b><span>8–11 fev 2027</span></div>
 <div><b>PDAC · Toronto</b><span>7–10 mar 2027</span></div>
 <div><b>Expomin · Santiago</b><span>20–24 abr 2027</span></div>
+<div><b>2ª Feira Empreendedora da Mulher · Conselheiro Lafaiete/MG <small style="color:var(--gold)">✓ presença confirmada</small></b><span>6–7 mai 2027</span></div>
 <div><b>Hospitalar · São Paulo</b><span>18–21 mai 2027</span></div>
 <div><b>ESC Congress (cardiologia) · Milão</b><span>27–30 ago 2027</span></div>
 </div>
