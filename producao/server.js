@@ -297,7 +297,7 @@ app.use((req, res, next) => {
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('Cross-Origin-Opener-Policy', req.path.startsWith('/social/') ? 'unsafe-none' : 'same-origin');
-  res.setHeader('Cross-Origin-Resource-Policy', 'same-site');
+  res.setHeader('Cross-Origin-Resource-Policy', req.path.startsWith('/email/') ? 'cross-origin' : 'same-site');
   res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(self), geolocation=()');
   if (secureReq(req)) res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
