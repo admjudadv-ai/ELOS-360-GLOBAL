@@ -141,14 +141,14 @@ const FT=[['painel','Gestão — Painel 360',8.5,17.3],['network','Projetos',20.
 const SDESC={dir:'Direção geral, decisões estratégicas e governança da Elos.',pes:'Atendimento a pessoas, direitos civis, família, consumidor e trabalho.',prev:'INSS/RGPS, RPPS, previdência privada, planejamento e CNIS.',ges:'Gestão empresarial, consultoria, processos e indicadores.',adm:'Processos administrativos e judiciais, prazos e compliance.',pnj:'Projetos no Brasil e no exterior: captação, execução e prestação de contas.',net:'Rede de clientes, parceiros, investidores e gestores em todos os países.',soc:'Ações sociais e solidariedade. Eventos sociais 100% voluntariado.',edu:'Cursos, treinamentos, capacitação e eventos.',fin:'Contas a pagar e a receber, fluxo de caixa e orçamento.',com:'Vendas, propostas e relacionamento comercial.',rh:'Equipe, cargos, admissões e desenvolvimento.',ti:'Sistemas, dados, segurança e LGPD.'};
 const SMOD={dir:['ban','cob','fin','con','for','crm','rh','est','jur','doc','fis','cad','log','ati','eve'],pes:['crm','doc','jur'],prev:['doc','jur','rh','fis'],ges:['ban','cob','fin','con','for','est','fis','ati'],adm:['jur','con','doc','cad'],pnj:['con','fin','doc','cad','log'],net:['crm','cad'],soc:['crm','doc','eve'],edu:['doc','rh','eve'],fin:['ban','cob','fin','con','fis'],com:['crm','con','log','est'],rh:['rh','fis'],ti:['doc','jur','ati']};
 /* ---------- logins e acessos ---------- */
-let U=null,UID='local',OWN=true,MYNAME='',PERM={},PED={},NM={};
+let U=null,UID='local',OWN=false,MYNAME='',PERM={},PED={},NM={};
 const isAdm=()=>OWN;
-const myP=()=>PERM[UID]&&PERM[UID].ativo!==false?PERM[UID]:null;
+const myP=()=>PERM[UID]&&PERM[UID].ativo===true?PERM[UID]:null;
 const mySet=()=>isAdm()?SET.map(s=>s[0]):((myP()&&myP().setores)||[]);
 const can=c=>mySet().includes(c);
 const hasAny=()=>mySet().length>0;
-const modOk=id=>isAdm()||mySet().some(s=>(SMOD[s]||[]).includes(id));
-const painelOk=()=>isAdm()||can('dir')||can('fin');
+const modOk=()=>isAdm();
+const painelOk=()=>isAdm();
 const nmOf=id=>id===UID?(MYNAME||'Você'):(NM[id]&&(NM[id].name||NM[id].email))||'Membro Elos';
 const uSpan=id=>'<span data-u="'+esc(id||'')+'">'+esc(nmOf(id))+'</span>';
 async function fillNames(){if(!U)return;const ids=[...new Set([...m$.querySelectorAll('[data-u]')].map(e=>e.dataset.u).filter(x=>x&&x!==UID&&!NM[x]))];if(ids.length){try{const ps=await U.profiles(ids);Object.assign(NM,ps||{})}catch(e){}}m$.querySelectorAll('[data-u]').forEach(e=>{e.textContent=nmOf(e.dataset.u)});m$.querySelectorAll('[data-ue]').forEach(e=>{const p=NM[e.dataset.ue];e.textContent=p&&p.email||''})}
@@ -1094,12 +1094,12 @@ if(tr&&al&&pa){tr.onchange=()=>{al.value='';fill()};pa.onchange=()=>{al.value=''
 let DIRTY='';
 function acessos(){
 const ids=[...new Set(Object.keys(PED).concat(Object.keys(PERM)))].filter(x=>x&&x!==UID);
-const st=id=>{const p=PERM[id];return !p?'<span class="gd">Pendente</span>':p.ativo===false?'<span class="red">Bloqueado</span>':'<span class="okc">Liberado</span>'};
+const st=id=>{const p=PERM[id];return !p?'<span class="gd">Pendente</span>':p.ativo!==true?'<span class="red">Bloqueado</span>':'<span class="okc">Liberado</span>'};
 m$.innerHTML='<h2>🔐 Logins e Acessos</h2>'+
 '<div class="card" style="border-left:5px solid var(--gd)"><h3>👑 '+esc(MYNAME||'Administração geral')+' — Administradora geral</h3><p class="mut" style="margin:0">Um único login (sua conta Elos) com acesso total e idêntico a <b>todos os '+SET.length+' setores</b>, todos os módulos do ERP, Painel 360, Países, Comunidade e esta tela de acessos. Esse acesso é fixo e não pode ser restringido por ninguém.</p><div style="margin-top:8px">'+SET.map(s=>'<span class="chip">'+s[2]+' '+s[1]+' ✓</span>').join('')+'</div></div>'+
-(DB&&U?'<div class="card"><h3>＋ Cadastrar login</h3><p class="mut">Busque a pessoa pelo nome ou e-mail (ela precisa ter recebido o link do sistema). Quem abrir o link já entra aqui automaticamente como pendente.</p><input id="us" placeholder="Nome ou e-mail"><div id="ur"></div></div>':'<div class="card mut">Os logins de outras pessoas funcionam na versão publicada do sistema, com o banco de dados compartilhado ligado.</div>')+
-'<div class="card"><h3>👥 Pessoas cadastradas ('+ids.length+')</h3>'+(ids.length?ids.map(id=>{const pi=(PED[id]&&PED[id].int)||[];const p=PERM[id]||{setores:pi.filter(k=>k.startsWith('s-')).map(k=>k.slice(2)),papel:'colaborador',ativo:true};return '<div class="post" data-id="'+esc(id)+'"><div class="row"><b style="flex:1">'+uSpan(id)+' <small class="mut" data-ue="'+esc(id)+'"></small></b>'+st(id)+'</div>'+(pi.length?'<p class="mut" style="margin:4px 0 8px">🎯 Interesse: '+pi.map(k=>esc(intLabel(k))).join(' · ')+'</p>':'')+
-'<div class="row" style="margin:8px 0"><label>Cargo/papel<select class="pp"><option value="gestor"'+(p.papel==='gestor'?' selected':'')+'>Gestor(a) de setor</option><option value="colaborador"'+(p.papel!=='gestor'&&p.papel!=='consulta'?' selected':'')+'>Colaborador(a)</option><option value="consulta"'+(p.papel==='consulta'?' selected':'')+'>Consulta</option></select></label><label class="chk"><input type="checkbox" class="pa"'+(p.ativo!==false?' checked':'')+'> Login ativo</label><button class="s all">Marcar todos</button></div>'+
+(DB&&U?'<div class="card"><h3>＋ Cadastrar login</h3><p class="mut">Busque a pessoa pelo nome ou e-mail (ela precisa ter recebido o link do sistema). Quem concluir o cadastro aparece na busca. Selecione a pessoa para revisar e aprovar o acesso.</p><input id="us" placeholder="Nome ou e-mail"><div id="ur"></div></div>':'<div class="card mut">Os logins de outras pessoas funcionam na versão publicada do sistema, com o banco de dados compartilhado ligado.</div>')+
+'<div class="card"><h3>👥 Pessoas cadastradas ('+ids.length+')</h3>'+(ids.length?ids.map(id=>{const pi=(PED[id]&&PED[id].int)||[];const p=PERM[id]||{setores:pi.filter(k=>k.startsWith('s-')).map(k=>k.slice(2)),papel:'colaborador',ativo:false};return '<div class="post" data-id="'+esc(id)+'"><div class="row"><b style="flex:1">'+uSpan(id)+' <small class="mut" data-ue="'+esc(id)+'"></small></b>'+st(id)+'</div>'+(pi.length?'<p class="mut" style="margin:4px 0 8px">🎯 Interesse: '+pi.map(k=>esc(intLabel(k))).join(' · ')+'</p>':'')+
+'<div class="row" style="margin:8px 0"><label>Cargo/papel<select class="pp"><option value="gestor"'+(p.papel==='gestor'?' selected':'')+'>Gestor(a) de setor</option><option value="colaborador"'+(p.papel!=='gestor'&&p.papel!=='consulta'?' selected':'')+'>Colaborador(a)</option><option value="consulta"'+(p.papel==='consulta'?' selected':'')+'>Consulta</option></select></label><label class="chk"><input type="checkbox" class="pa"'+(p.ativo===true?' checked':'')+'> Cadastro aprovado</label><button class="s all">Marcar todos</button></div>'+
 '<div class="grid">'+SET.map(s=>'<label class="chk"><input type="checkbox" class="ps" value="'+s[0]+'"'+((p.setores||[]).includes(s[0])?' checked':'')+'>'+s[2]+' '+s[1]+'</label>').join('')+'</div>'+
 '<div class="row" style="margin-top:8px"><button class="p sv">Salvar acesso</button><button class="d rm">Remover login</button></div></div>'}).join(''):'<p class="mut">Nenhuma outra pessoa ainda. Compartilhe o link do sistema e cadastre aqui.</p>')+'</div>';
 m$.querySelectorAll('.post[data-id]').forEach(el=>{const id=el.dataset.id;
@@ -1107,7 +1107,7 @@ el.querySelectorAll('input,select').forEach(i=>i.onchange=()=>{DIRTY=id});
 el.querySelector('.all').onclick=()=>{el.querySelectorAll('.ps').forEach(c=>c.checked=true);DIRTY=id};
 el.querySelector('.sv').onclick=()=>{const setores=[...el.querySelectorAll('.ps:checked')].map(c=>c.value);DIRTY='';setDoc('perm',id,{setores,papel:el.querySelector('.pp').value,ativo:el.querySelector('.pa').checked,t:Date.now(),por:UID});log('','atualizou o acesso de '+nmOf(id)+': '+setores.length+' setor(es)');el.querySelector('.sv').textContent='Salvo ✓'};
 el.querySelector('.rm').onclick=e=>{const b=e.target;if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='Toque de novo para confirmar';return}DIRTY='';del('perm',id);del('pedidos',id)}});
-const us=document.getElementById('us');if(us){let tm;const run=async()=>{let r=[];try{r=await U.search(us.value)}catch(e){}const box=document.getElementById('ur');box.innerHTML='';(r||[]).filter(h=>h.id!==UID).slice(0,8).forEach(h=>{const d=document.createElement('div');d.className='al';const b=document.createElement('button');b.className='s';b.textContent='Cadastrar';const t=document.createElement('span');t.textContent=' '+(h.name||'')+(h.email?' · '+h.email:'')+(PERM[h.id]?' (já cadastrado)':'');d.append(b,t);b.onclick=()=>{NM[h.id]={name:h.name,email:h.email};if(!PERM[h.id])setDoc('perm',h.id,{setores:[],papel:'colaborador',ativo:true,t:Date.now(),por:UID});b.textContent='Cadastrado ✓'};box.appendChild(d)})};us.onfocus=run;us.oninput=()=>{clearTimeout(tm);tm=setTimeout(run,250)}}}
+const us=document.getElementById('us');if(us){let tm;const run=async()=>{let r=[];try{r=await U.search(us.value)}catch(e){}const box=document.getElementById('ur');box.innerHTML='';(r||[]).filter(h=>h.id!==UID).slice(0,8).forEach(h=>{const d=document.createElement('div');d.className='al';const b=document.createElement('button');b.className='s';b.textContent='Revisar cadastro';const t=document.createElement('span');t.textContent=' '+(h.name||'')+(h.email?' · '+h.email:'')+(PERM[h.id]?' (já cadastrado)':'');d.append(b,t);b.onclick=()=>{NM[h.id]={name:h.name,email:h.email};if(!PERM[h.id])setDoc('perm',h.id,{setores:[],papel:'colaborador',ativo:false,t:Date.now(),por:UID});b.textContent='Em revisão'};box.appendChild(d)})};us.onfocus=run;us.oninput=()=>{clearTimeout(tm);tm=setTimeout(run,250)}}}
 /* ---------- comunidade profissional ---------- */
 const myPerfil=()=>X.perfil.find(p=>p._id===UID)||null;
 const aIdx=n=>allAreas().findIndex(x=>x.a===n);
@@ -1711,6 +1711,21 @@ if(typeof investidores==='function'){const _inv=investidores;investidores=functi
 function route(keep){
 const h=decodeURIComponent(location.hash.slice(1)),i=h.indexOf('-'),a=i<0?h:h.slice(0,i),b=i<0?'':h.slice(i+1);hdr();
 const G=f=>hasAny()?f():locked();
+if (!OWN) {
+  const previews = {
+    prev: ['Previdência', 'Informações gerais sobre planejamento previdenciário e atendimento.'],
+    network: ['Projetos', 'A ELOS desenvolve projetos empresariais e de cooperação internacional.'],
+    fin: ['Financeiro', 'Área privativa da proprietária.']
+  };
+  const key = a === 's' ? b : ['previdencia', 'carteira', 'pc', 'meuprev'].includes(a) ? 'prev'
+    : ['expo','pasta','novo','p','pnj','prog','programas','mulheres'].includes(a) ? 'network'
+    : ['painel','ban','cob','con','banco','cobranca'].includes(a) ? 'fin' : a;
+  if (Object.hasOwn(previews, key)) {
+    const [title, summary] = previews[key];
+    m$.innerHTML = '<h2>🔒 '+title+'</h2><div class="card"><p>'+summary+'</p><p class="mut">Conteúdo interno restrito.</p></div>';
+    return;
+  }
+}
 if(a==='painel')painelOk()?painel():locked('O Painel 360 é liberado para Diretoria, Financeiro e administração.');else if(a==='paises')G(paises);else if(a==='network')G(network);else if(a==='expo')G(()=>b?expoVer(b):expo());else if(a==='pasta')G(()=>pasta(b));else if(a==='novo')G(()=>novo(b));else if(a==='p')G(()=>proj(b));else if(a==='central')G(central);else if(a==='one')G(one);else if(a==='bemvindo')bemvindo();else if(a==='programas')programas();else if(a==='eventos')eventos();else if(a==='contato')contato();else if(a==='investidores')investidores();else if(a==='mocambique')mocambique();else if(a==='apoio')apoio();else if(a==='carteira')carteira();else if(a==='pc')pvCliente(b);else if(a==='meuprev')meuprev();else if(a==='visitas')visitas();else if(a==='solicitacoes')solicitacoes();else if(a==='agenda')agenda();else if(a==='cadastro')cadastro();else if(a==='seguranca')seguranca();else if(a==='dossie')(typeof dossie==='function'?dossie():locked('Carregando o dossiê…'));else if(a==='rastreamento')rast();else if(a==='mapa')mapa();else if(a==='medicina')medicina();else if(a==='terras')terras();else if(a==='mercados')mercados();else if(a==='social')social();else if(a==='mulheres')mulheres(b);else if(a==='festas')festas();else if(a==='engenharia')engenharia();else if(a==='energia')energia();else if(a==='banco')banco();else if(a==='cobranca')cobranca();else if(a==='documentos')documentos();else if(a==='terrasafrica')terrasAfrica();else if(a==='convite')convite();else if(a==='app')appInst();else if(a==='previdencia')previdencia();else if(a==='pais')pais(b);else if(a==='ti')ti();else if(a==='leads')OWN?leads():locked('Somente a coordenação vê os futuros clientes.');else if(a==='evnovo')evNovo(b);else if(a==='ev')evVer(b);else if(a==='evminhas')evMinhas();else if(a==='prog'&&b==='min')progMin();else if(a==='prog'&&b==='mul')progMul();else if(a==='fiscal')G(()=>fiscal(b));else if(a==='setores')setores();else if(a==='s')setor(b);
 else if(a==='acessos')OWN?acessos():locked('Somente a administração geral gerencia logins e acessos.');else if(a==='comunidade')comunidade();else if(a==='g')grupo(+b);else if(a==='area')area(b);else if(a==='oport')oport();else if(a==='perfil')perfil();
 else{const m=M.find(x=>x.id===a);m?(modOk(m.id)?mod(m):locked('O módulo '+m.n+' não está liberado para os setores do seu login.')):home()}

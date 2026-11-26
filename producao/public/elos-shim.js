@@ -21,7 +21,7 @@
   /* tempo real */
   var subs = {}, es = null;
   function ensureES() {
-    if (es || !window.EventSource) return;
+    if (!ME.isOwner || es || !window.EventSource) return;
     es = new EventSource('/api/stream');
     es.onmessage = function (e) { try { var c = JSON.parse(e.data).col; (subs[c] || []).slice().forEach(function (f) { f(); }); } catch (_) {} };
   }
@@ -143,7 +143,12 @@
       var fd = new FormData(f), b = f.querySelector('.p'), er = f.querySelector('.err');
       b.disabled = true; er.textContent = '';
       api('POST', reg ? '/api/register' : '/api/login', { name: fd.get('name') || '', email: fd.get('email'), pass: fd.get('pass') })
-        .then(function () { location.reload(); })
+        .then(function (result) {
+          if (!result.pending) return location.reload();
+          f.innerHTML = '<h3 id="elosmt">Cadastro recebido</h3><p>Seu acesso depende da aprovação da administração. Depois da aprovação, entre com seu e-mail e senha.</p><button type="button" class="p">Fechar</button>';
+          f.querySelector('button').onclick = function () { m.remove(); };
+          f.querySelector('button').focus();
+        })
         .catch(function (x) { er.textContent = x.message; b.disabled = false; });
     };
     setTimeout(function () { var i = f.querySelector('input'); if (i) i.focus(); }, 30);
