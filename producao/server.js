@@ -18,7 +18,7 @@ const { Pool } = require('pg');
 
 const PORT = Number(process.env.PORT || 10000);
 const OWNER_EMAILS = String(process.env.OWNER_EMAILS || process.env.OWNER_EMAIL || '')
-  .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  .split(',').map(s => s.trim().toLowerCase()).filter(Boolean).slice(0, 1);
 const SECRET = process.env.SESSION_SECRET || '';
 const AI_KEY = process.env.ANTHROPIC_API_KEY || '';
 const AI_MODEL = process.env.AI_MODEL || 'claude-sonnet-5-5';
@@ -131,67 +131,31 @@ async function migrate() {
   dbReady = true;
 }
 
-/* ---------- regras de acesso (iguais às do sistema integrado) ---------- */
+/* ---------- regras de acesso ---------- */
 const LV = { anon: 0, view: 1, interact: 2, admin: 3, owner: 4 };
-const DEFAULT_RULE = { read: 'view', write: 'interact' };
-const RULES = {
-  /* Dossiê da CEO: nunca pela API genérica (nível inexistente = ninguém); só pelas rotas /api/dossie */
-  dossie: { read: 'ceo', write: 'ceo' }, dossiearq: { read: 'ceo', write: 'ceo' }, dossiecfg: { read: 'ceo', write: 'ceo' },
-  perm: { read: 'view', write: 'admin' },
-  pedidos: { read: 'admin', write: 'admin' },
+const DEFAULT_RULE = { read: 'owner', write: 'owner' };
+const RULES = Object.assign(Object.create(null), {
+  dossie: { read: 'ceo', write: 'ceo' },
+  dossiearq: { read: 'ceo', write: 'ceo' },
+  dossiecfg: { read: 'ceo', write: 'ceo' },
+  'perm/{self}': { read: 'view', write: 'owner' },
   'pedidos/{self}': { read: 'view', write: 'view' },
-  perfil: { read: 'view', write: 'admin' },
   'perfil/{self}': { read: 'view', write: 'view' },
-  leads: { read: 'admin', write: 'admin' },
-  'leads/{self}': { read: 'view', write: 'view' },
-  evt: { read: 'anon', write: 'interact' },
-  cfg: { read: 'anon', write: 'interact' },
-  forum: { read: 'view', write: 'interact' },
-  resp: { read: 'view', write: 'interact' },
-  areas: { read: 'view', write: 'interact' },
-  /* Rastreamento de frotas: cada pessoa vê só o próprio pedido; comissões e contatos do parceiro só a coordenação */
-  /* Investidores: cada pessoa vê só a própria ficha; a coordenação vê todas */
-  invn: { read: 'admin', write: 'admin' },
-  'invn/{self}': { read: 'view', write: 'view' },
-  rast: { read: 'admin', write: 'admin' },
-  'rast/{self}': { read: 'view', write: 'view' },
-  rastc: { read: 'admin', write: 'admin' },
-  rastp: { read: 'admin', write: 'admin' },
-  /* Pedidos de serviço (festas, engenharia, energia) e regularização de documentos: cada pessoa vê só os seus; a coordenação vê todos */
-  ped: { read: 'admin', write: 'admin' },
-  'ped/{mine}': { read: 'view', write: 'view' },
-  reg: { read: 'admin', write: 'admin' },
-  'reg/{mine}': { read: 'view', write: 'view' },
-  espec: { read: 'view', write: 'admin' },
-  filas: { read: 'admin', write: 'admin' },
-  i18n: { read: 'admin', write: 'admin' },
-  eloraWA: { read: 'admin', write: 'admin' },
-  sol: { read: 'owner', write: 'owner' },
-  agd: { read: 'owner', write: 'owner' },
-  agdlog: { read: 'owner', write: 'owner' },
-  secscan: { read: 'owner', write: 'owner' },
-  /* Expo África Brasil 2026: projetos por país no Network — todos com login leem, somente a CEO (coordenação) grava */
-  expo26: { read: 'view', write: 'owner' },
-};
-for (const c of ['prj', 'tsk', 'msg', 'evp', 'parceiros', 'jovens', 'empresas', 'vagas', 'projetos', 'avaliacoes', 'atividade', 'paises']) {
-  RULES[c] = { read: 'interact', write: 'interact' };
-}
-for (const m of ['ban', 'cob', 'fin', 'con', 'for', 'crm', 'rh', 'est', 'jur', 'doc', 'fis', 'cad', 'log', 'ati', 'eve']) {
-  RULES['r_' + m] = { read: 'interact', write: 'interact' };
-}
+  'leads/{self}': { read: 'view', write: 'view' }
+});
 const NAME_RE = /^[A-Za-z0-9_-]{1,64}$/;
 const ruleFor = (col, id, uid) => (uid && id === uid && RULES[col + '/{self}']) || (uid && id && id.startsWith(uid + '_') && RULES[col + '/{mine}']) || RULES[col] || DEFAULT_RULE;
 const can = (lvl, need) => LV[lvl] >= LV[need];
 
 /* ---------- sessão ---------- */
 const b64u = b => Buffer.from(b).toString('base64url');
-const sign = s => crypto.createHmac('sha256', SECRET || 'dev-only').update(s).digest('base64url');
+const sign = s => crypto.createHmac('sha256', SECRET).update(s).digest('base64url');
 function makeToken(uid) {
   const p = b64u(JSON.stringify({ uid, exp: Date.now() + SESSION_DAYS * 864e5 }));
   return p + '.' + sign(p);
 }
 function readToken(t) {
-  if (!t || typeof t !== 'string') return null;
+  if (SECRET.length < 32 || !t || typeof t !== 'string') return null;
   const [p, s] = t.split('.');
   if (!p || !s) return null;
   const a = Buffer.from(sign(p)), b = Buffer.from(s);
@@ -211,19 +175,19 @@ function setSession(req, res, uid) {
   res.setHeader('Set-Cookie', `elos_s=${encodeURIComponent(v)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${uid ? SESSION_DAYS * 86400 : 0}${secureReq(req) ? '; Secure' : ''}`);
 }
 
+async function accessLevel(id, email) {
+  if (OWNER_EMAILS.includes(email.toLowerCase())) return 'owner';
+  const { rows } = await pool.query("SELECT data FROM elos_docs WHERE col='perm' AND id=$1", [id]);
+  return rows[0]?.data?.ativo === true ? 'interact' : null;
+}
+
 async function currentUser(req) {
   const uid = readToken(cookieOf(req, 'elos_s'));
-  if (!uid || !pool) return null;
-  const { rows } = await pool.query('SELECT id,email,name FROM elos_users WHERE id=$1', [uid]);
-  if (!rows[0]) return null;
-  const u = rows[0];
-  u.isOwner = OWNER_EMAILS.includes(u.email.toLowerCase());
-  if (u.isOwner) u.level = 'owner';
-  else {
-    const p = await pool.query("SELECT data FROM elos_docs WHERE col='perm' AND id=$1", [u.id]);
-    u.level = p.rows[0] && p.rows[0].data && p.rows[0].data.ativo !== false ? 'interact' : 'view';
-  }
-  return u;
+  if (!uid || !pool || !dbReady) return null;
+  const { rows: [user] } = await pool.query('SELECT id,email,name FROM elos_users WHERE id=$1', [uid]);
+  if (!user) return null;
+  const level = await accessLevel(user.id, user.email);
+  return level ? { ...user, level, isOwner: level === 'owner' } : null;
 }
 
 /* ---------- tempo real ---------- */
@@ -312,9 +276,11 @@ app.use('/api', (req, res, next) => {
   next();
 });
 app.use('/api', async (req, res, next) => {
+  res.set('Cache-Control', 'private, no-store');
   try { req.user = await currentUser(req); req.level = req.user ? req.user.level : 'anon'; next(); }
   catch (e) { next(e); }
 });
+const onlyOwner = (req, res, next) => (req.user?.isOwner ? next() : res.status(req.user ? 403 : 401).json({ error: 'somente a administração' }));
 const needDb = (req, res, next) => (pool && dbReady ? next() : res.status(503).json({ error: 'banco indisponível' }));
 const audit = (uid, action, col, doc) => pool && pool.query('INSERT INTO elos_audit(t,uid,action,col,doc) VALUES($1,$2,$3,$4,$5)', [Date.now(), uid || null, action, col || null, doc || null]).catch(() => {});
 
@@ -336,6 +302,7 @@ app.post('/api/register', needDb, async (req, res) => {
   if (limited('reg:' + ip, 10, 36e5)) return res.status(429).json({ error: 'Muitas tentativas. Tente mais tarde.' });
   const email = String(req.body.email || '').trim().toLowerCase(), name = String(req.body.name || '').trim().slice(0, 120), pass = String(req.body.pass || '');
   if (!validEmail(email)) return res.status(400).json({ error: 'E-mail inválido.' });
+  if (OWNER_EMAILS.includes(email)) return res.status(403).json({ error: 'Use o login já configurado da administração.' });
   if (pass.length < 10) return res.status(400).json({ error: 'A senha precisa ter pelo menos 10 caracteres.' });
   const hash = await argon2.hash(pass, { type: argon2.argon2id, memoryCost: 19456, timeCost: 2, parallelism: 1 });
   const id = 'u_' + crypto.randomBytes(12).toString('base64url');
@@ -348,8 +315,7 @@ app.post('/api/register', needDb, async (req, res) => {
   visMark(req, id);
   eloraAviso('🆕 Novo cadastro na plataforma: ' + (name || 'sem nome') + ' (' + email + ')', true);
   console.log(`[elos] novo cadastro (${OWNER_EMAILS.includes(email) ? 'coordenação' : 'membro'})`);
-  setSession(req, res, id);
-  res.json({ ok: true });
+  res.status(202).json({ ok: true, pending: true });
 });
 
 app.post('/api/login', needDb, async (req, res) => {
@@ -358,6 +324,8 @@ app.post('/api/login', needDb, async (req, res) => {
   const { rows } = await pool.query('SELECT id,pass_hash FROM elos_users WHERE email=$1', [email]);
   const ok = rows[0] ? await argon2.verify(rows[0].pass_hash, pass).catch(() => false) : (await argon2.hash(pass || 'x').catch(() => 0), false);
   if (!ok) return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
+  if (SECRET.length < 32) return res.status(503).json({ error: 'Login temporariamente indisponível.' });
+  if (!(await accessLevel(rows[0].id, email))) return res.status(403).json({ error: 'Seu cadastro aguarda aprovação da administração ou está bloqueado.' });
   await pool.query('UPDATE elos_users SET last_login=$2 WHERE id=$1', [rows[0].id, Date.now()]);
   audit(rows[0].id, 'login');
   visMark(req, rows[0].id);
@@ -380,20 +348,20 @@ app.post('/api/password', needDb, async (req, res) => {
   res.json({ ok: true });
 });
 
-/* perfis: nomes para todos os membros; e-mail só para a coordenação */
+/* Perfis de terceiros são exclusivos da proprietária. */
 app.post('/api/profiles', needDb, async (req, res) => {
-  if (!can(req.level, 'view')) return res.status(401).json({});
+  if (req.level !== 'owner') return res.status(403).json({});
   const ids = (Array.isArray(req.body.ids) ? req.body.ids : []).filter(x => typeof x === 'string').slice(0, 200);
   if (!ids.length) return res.json({});
   const { rows } = await pool.query('SELECT id,name,email FROM elos_users WHERE id = ANY($1)', [ids]);
   const out = {};
-  for (const r of rows) out[r.id] = req.level === 'owner' ? { name: r.name, email: r.email } : { name: r.name };
+  for (const r of rows) out[r.id] = { name: r.name, email: r.email };
   res.json(out);
 });
 app.get('/api/users', needDb, async (req, res) => {
   if (req.level !== 'owner') return res.status(403).json([]);
   const q = '%' + String(req.query.q || '').toLowerCase().replace(/[%_]/g, '') + '%';
-  const { rows } = await pool.query('SELECT id,name,email FROM elos_users WHERE lower(email) LIKE $1 OR lower(name) LIKE $1 ORDER BY created DESC LIMIT 50', [q]);
+  const { rows } = await pool.query("SELECT u.id,u.name,u.email FROM elos_users u LEFT JOIN elos_docs p ON p.col='perm' AND p.id=u.id WHERE lower(u.email) LIKE $1 OR lower(u.name) LIKE $1 ORDER BY (p.data->'ativo' IS DISTINCT FROM 'true'::jsonb) DESC, u.created DESC LIMIT 50", [q]);
   res.json(rows);
 });
 
@@ -450,6 +418,7 @@ app.patch('/api/d/:col/:id', needDb, checkName, (req, res, next) => write(req, r
 app.delete('/api/d/:col/:id', needDb, checkName, (req, res, next) => write(req, res, 'delete').catch(next));
 
 app.get('/api/stream', (req, res) => {
+  if (req.level !== 'owner') return res.status(req.user ? 403 : 401).end();
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache, no-transform');
   res.setHeader('X-Accel-Buffering', 'no');
@@ -692,13 +661,13 @@ function prevView(id, d) {
     pend: (Array.isArray(d.pend) ? d.pend : []).filter(x => !x.ok).map(x => x.t),
     msgs: (Array.isArray(d.msgs) ? d.msgs : []).slice(-200) };
 }
-app.get('/api/meuprev', needDb, async (req, res) => {
+app.get('/api/meuprev', onlyOwner, needDb, async (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'entre na plataforma' });
   const { rows } = await pool.query("SELECT id,data FROM elos_docs WHERE col='ped' AND data->>'area'='prev' AND data->>'cu'=$1 ORDER BY updated", [req.user.id]);
   res.set('Cache-Control', 'no-store');
   res.json(rows.map(r => prevView(r.id, r.data)));
 });
-app.post('/api/meuprev/:id/msg', needDb, checkNameId, async (req, res) => {
+app.post('/api/meuprev/:id/msg', onlyOwner, needDb, checkNameId, async (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'entre na plataforma' });
   const txt = String((req.body || {}).txt || '').trim().slice(0, 2000);
   if (!txt) return res.status(400).json({ error: 'mensagem vazia' });
@@ -924,7 +893,6 @@ async function resumoSistema() {
     (ult.length ? '*Últimas movimentações:*\n' + ult.map(r => '• ' + (SETN[r.data.setor] || '') + ': ' + String(r.data.texto || '').slice(0, 140)).join('\n') + '\n\n' : '') +
     'Abrir: ' + (process.env.PUBLIC_URL || 'https://elo360global.com.br') + '/sistema#central';
 }
-const onlyOwner = (req, res, next) => (req.user && req.user.isOwner ? next() : res.status(403).json({ error: 'somente a coordenação' }));
 app.get('/api/elora/whatsapp', onlyOwner, async (req, res) => {
   await waCfgLoad().catch(() => {});
   res.json({ configurado: waOn(), avisos: WACFG.avisos !== false, minutos: WA.min, numero: WA.owner, numeroFmt: fmtTel(WA.owner), pendentes: WAQ.length });
@@ -1098,7 +1066,7 @@ app.post('/api/sol/:col/:id', onlyOwner, async (req, res) => {
   catch (e) { res.status(/não encontrada|inválida/.test(e.message) ? 400 : 500).json({ error: e.message || 'falha' }); }
 });
 /* quem solicitou: acompanha e conversa em tempo real */
-app.get('/api/minhas-sol', async (req, res) => {
+app.get('/api/minhas-sol', onlyOwner, async (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'entre na sua conta' });
   if (!pool || !dbReady) return res.json({ itens: [] });
   try {
@@ -1108,7 +1076,7 @@ app.get('/api/minhas-sol', async (req, res) => {
     res.json({ itens: out });
   } catch (e) { res.status(500).json({ error: 'falha' }); }
 });
-app.post('/api/minhas-sol/:col/:id/msg', async (req, res) => {
+app.post('/api/minhas-sol/:col/:id/msg', onlyOwner, async (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'entre na sua conta' });
   if (limited('solmsg:' + req.user.id, 30, 36e5)) return res.status(429).json({ error: 'Muitas mensagens. Aguarde um pouco.' });
   const { col, id } = req.params; if (!SOLC[col] || !NAME_RE.test(id)) return res.status(400).json({ error: 'inválido' });
@@ -1171,8 +1139,8 @@ app.post('/api/agenda', onlyOwner, async (req, res) => { try { res.json({ ok: tr
 app.post('/api/agenda/:id', onlyOwner, async (req, res) => { try { res.json({ ok: true, ev: await agdAtualizar(req.params.id, req.body || {}, 'CEO') }); } catch (e) { res.status(400).json({ error: e.message }); } });
 app.delete('/api/agenda/:id', onlyOwner, async (req, res) => { try { await pool.query("DELETE FROM elos_docs WHERE col='agd' AND id=$1", [String(req.params.id)]); broadcast('agd'); res.json({ ok: true }); } catch (e) { res.status(500).json({ error: 'falha' }); } });
 /* página Home: só o que a coordenação marcou para aparecer */
-app.get('/api/agenda/home', async (req, res) => {
-  res.set('cache-control', 'public, max-age=120');
+app.get('/api/agenda/home', onlyOwner, async (req, res) => {
+  res.set('Cache-Control', 'private, no-store');
   try { const h = AVISOS.hojeBR(); res.json({ eventos: (await agdLista()).filter(e => e.home && e.status !== 'cancelado' && e.data >= h).sort((a, b) => (a.data + (a.hora || '')).localeCompare(b.data + (b.hora || ''))).slice(0, 8).map(e => ({ titulo: e.titulo, tipo: e.tipo, data: e.data, hora: e.hora, local: e.local, descricao: e.descricao.slice(0, 300) })) }); }
   catch (e) { res.json({ eventos: [] }); }
 });
@@ -1294,41 +1262,20 @@ app.get('/sw.js', (req, res) => { res.set('Cache-Control', 'no-cache'); res.set(
 const ASSET_FP = (process.env.ANDROID_SHA256 || '').split(',').map(x => x.trim()).filter(Boolean);
 const ASSET_BASE = ['2F:5E:16:28:44:1B:D9:90:FE:EC:41:17:19:33:FB:A4:A1:4F:90:CC:82:88:F3:87:D0:53:B0:84:63:9F:5F:0E'];
 app.get('/.well-known/assetlinks.json', (req, res) => res.json([{ relation: ['delegate_permission/common.handle_all_urls'], target: { namespace: 'android_app', package_name: 'br.com.elo360global.app', sha256_cert_fingerprints: [...new Set([...ASSET_BASE, ...ASSET_FP])] } }]));
-const escH = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-app.get('/projeto/:tok', async (req, res, next) => {
-  const tok = String(req.params.tok || '');
-  if (!/^[a-z0-9]{8,40}$/.test(tok) || !pool || !dbReady) return next();
+app.get('/projeto/:tok', (req, res) => {
+  res.set('Cache-Control', 'private, no-store').redirect(303, '/sistema#network');
+});
+app.use(async (req, res, next) => {
   try {
-    const r = await pool.query("SELECT id, data FROM elos_docs WHERE col='prj' AND data->>'pub'=$1 LIMIT 1", [tok]);
-    if (!r.rows[0]) return res.status(404).type('html').send('<!DOCTYPE html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><body style="font-family:system-ui;background:#040d22;color:#fff;display:grid;place-items:center;min-height:100vh;text-align:center"><div><h1>Link indisponível</h1><p>Este projeto não está mais compartilhado.</p><a style="color:#e8b84a" href="/">Conhecer a Elos 360° Global</a></div>');
-    const p = r.rows[0].data, pid = r.rows[0].id;
-    const t = await pool.query("SELECT count(*)::int AS n, count(*) FILTER (WHERE data->>'status'='feita')::int AS f FROM elos_docs WHERE col='tsk' AND data->>'pid'=$1", [pid]);
-    const pc = t.rows[0].n ? Math.round(t.rows[0].f * 100 / t.rows[0].n) : 0;
-    const set = (p.setores || []).map(s => SETN[s] || s);
-    const wa = 'https://wa.me/' + WA.owner + '?text=' + encodeURIComponent('Olá! Tenho interesse no projeto “' + (p.nome || '') + '” da Elos 360° Global.');
-    const desc = escH(String(p.desc || 'Projeto da Elos 360° Global').slice(0, 200));
-    res.set('Cache-Control', 'no-cache').type('html').send(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>${escH(p.nome)} · Elos 360° Global</title><meta name="description" content="${desc}">
-<meta property="og:title" content="${escH(p.nome)} · Elos 360° Global"><meta property="og:description" content="${desc}"><meta property="og:image" content="https://elo360global.com.br/convite-oficial.jpg"><meta name="theme-color" content="#040d22">
-<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png"><link rel="stylesheet" href="/elora.css?v=20261121c">
-<style>*{box-sizing:border-box}html{background:#040d22}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#eaf2ff;background:radial-gradient(ellipse at 50% 0%,#1a4aa8,#0a2560 35%,#040d22 80%) fixed;min-height:100vh}
-main{max-width:820px;margin:0 auto;padding:calc(26px + env(safe-area-inset-top,0px)) 16px 120px}.c{border:2px solid #e8b84a;border-radius:26px;padding:clamp(20px,5vw,40px);background:linear-gradient(160deg,rgba(18,52,122,.75),rgba(4,13,34,.92));box-shadow:0 30px 80px #000a;animation:up .8s cubic-bezier(.2,.8,.2,1)}
-@keyframes up{from{opacity:0;transform:translateY(24px)}}.top{display:flex;align-items:center;gap:14px}.top img{width:64px;height:64px;border-radius:50%;border:3px solid #e8b84a}.eb{letter-spacing:.3em;font-size:12px;font-weight:700;color:#e8b84a;margin:0}
-h1{font-family:Lora,Georgia,serif;font-size:clamp(28px,6vw,46px);margin:14px 0 8px;line-height:1.1}.d{font-size:17px;line-height:1.6;color:#dbe7ff;white-space:pre-wrap}.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:18px 0}
-.g div{background:#ffffff0d;border:1px solid #e8b84a44;border-radius:14px;padding:12px}.g small{display:block;color:#9fb4d6;font-size:12px}.g b{font-size:16px}.bar{height:10px;background:#ffffff1a;border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;width:${pc}%;background:linear-gradient(90deg,#2f86ff,#e8b84a)}
-.ch{display:inline-block;margin:3px;padding:5px 11px;border-radius:999px;border:1px solid #ffffff2a;font-size:13px;background:#ffffff0c}.a{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}.b{flex:1;min-width:220px;text-align:center;padding:15px;border-radius:999px;font-weight:700;text-decoration:none;transition:transform .2s}.b:hover{transform:translateY(-3px)}
-.w{background:#25D366;color:#fff;box-shadow:0 10px 26px #25D36655}.o{border:2px solid #e8b84a;color:#fff}.f{text-align:center;color:#9fb4d6;font-size:12.5px;margin-top:16px}</style></head><body><main><article class="c">
-<div class="top"><img src="/logo-circular.png" alt=""><div><p class="eb">PROJETO · ELOS 360° GLOBAL</p><small style="color:#ffd98a;font-style:italic">Conexões que transformam vidas</small></div></div>
-<h1>${escH(p.nome)}</h1>${p.desc ? `<p class="d">${escH(p.desc)}</p>` : ''}
-<div class="g">${p.pais ? `<div><small>País</small><b>${escH(p.pais)}</b></div>` : ''}${p.prazo ? `<div><small>Prazo</small><b>${escH(String(p.prazo).split('-').reverse().join('/'))}</b></div>` : ''}<div><small>Andamento</small><b>${pc}%</b><div class="bar" style="margin-top:6px"><i></i></div></div></div>
-${set.length ? `<p style="margin:0 0 4px;color:#9fb4d6;font-size:13px">Setores envolvidos</p>${set.map(x => `<span class="ch">${escH(x)}</span>`).join('')}` : ''}
-<div class="a"><a class="b w" href="${wa}" target="_blank" rel="noopener">💬 Tenho interesse — falar no WhatsApp</a><a class="b o" href="/convite">✦ Conhecer a Elos 360° Global</a></div>
-</article><p class="f">Coordenadora PSP · Elos 360° Global · elo360global.com.br</p></main>
-<script src="/elos-i18n.js?v=20261121c"></script><script src="/elora.js?v=20261121c"></script></body></html>`);
-  } catch (e) { next(e); }
+    const filePath = path.posix.normalize(decodeURIComponent(req.path));
+    if (!/^\/(docs|programas)(\/|$)/i.test(filePath)) return next();
+    req.user = await currentUser(req);
+    res.set('Cache-Control', 'private, no-store');
+    onlyOwner(req, res, next);
+  } catch (err) { next(err); }
 });
 app.get('/sistema', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
-app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'], maxAge: '5m', index: false }));
+app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'], maxAge: '5m', index: false, setHeaders(res) { if (/no-store/.test(String(res.getHeader('Cache-Control')))) res.setHeader('Cache-Control', 'private, no-store'); } }));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 app.use((err, req, res, next) => {
