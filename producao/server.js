@@ -1217,6 +1217,12 @@ async function eloraCEO(system, msgs, user, web) {
     await put('r_crm', 'dmps_global', { Nome: 'DMPS Global — Legal & Business Advisory', Perfil: 'investidor', Contato: 'dmps.advisory@dmps.com.br · WhatsApp +258 85 761 3514 · dmps.com.br', Etapa: 'ativo', Projeto: 'Parceria estratégica · cliente e investidora Elo Infinito 360°', Origem: 'Parceira estratégica', t: now });
     await put('invn', 'dmps_global', { nome: 'DMPS Global', emp: 'DMPS Global — Legal & Business Advisory', pais: 'BR', ct: 'dmps.advisory@dmps.com.br · +258 85 761 3514', perfil: 'Parceira estratégica · cliente', nivel: 'infinito', valor: '1000000', moeda: 'USD', setores: 'Todos os setores', msg: 'Cliente da Elos 360° Global, parceira estratégica e investidora no nível máximo (Elo Infinito 360°).', st: 'contrato', parceira: true, t: now, up: now });
     await put('cfg', 'parceiro_destaque', { nome: 'DMPS Global', site: 'https://dmps.com.br', nivel: 'Elo Infinito 360°', papel: 'Cliente · parceira estratégica · investidora no nível máximo' });
+    /* cliente cadastrado com razão social e CNPJ (27/11/2026) — mescla sem apagar o que a CEO já editou */
+    const merge = (col, id, data) => pool.query('INSERT INTO elos_docs(col,id,data,updated) VALUES($1,$2,$3,$4) ON CONFLICT (col,id) DO UPDATE SET data = elos_docs.data || EXCLUDED.data, updated = EXCLUDED.updated WHERE NOT (elos_docs.data ? \'cnpj\')', [col, id, data, now]);
+    const DMPS_ID = { razao: 'DMPS GLOBAL INOVA SIMPLES (I.S.)', cnpj: '70.345.856/0001-84' };
+    await merge('r_crm', 'dmps_global', { Nome: 'DMPS GLOBAL INOVA SIMPLES (I.S.) — DMPS Global Legal & Business Advisory', Documento: 'CNPJ 70.345.856/0001-84', Perfil: 'cliente', Etapa: 'ativo', ...DMPS_ID });
+    await merge('invn', 'dmps_global', { emp: 'DMPS GLOBAL INOVA SIMPLES (I.S.) · CNPJ 70.345.856/0001-84', ...DMPS_ID });
+    await merge('cfg', 'parceiro_destaque', DMPS_ID);
   } catch (e) { console.warn('[dmps-parceira]', e.message); }
 }, 9000); tm.unref && tm.unref(); })();
 
