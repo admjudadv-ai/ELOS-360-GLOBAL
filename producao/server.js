@@ -1281,6 +1281,9 @@ app.use(async (req, res, next) => {
   } catch (err) { next(err); }
 });
 app.get('/sistema', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+/* documentos enviados por link (apresentações, propostas): fora de buscadores e sem listagem — só abre quem recebe o link */
+app.get('/robots.txt', (req, res) => res.type('text/plain').send('User-agent: *\nDisallow: /docs/\nDisallow: /sistema\nDisallow: /api/\n'));
+app.use('/docs', (req, res, next) => { res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive'); res.setHeader('Referrer-Policy', 'no-referrer'); if (req.path === '/' || !/\.pdf$/i.test(req.path)) return res.status(404).end(); next(); });
 app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'], maxAge: '5m', index: false, setHeaders(res) { if (/no-store/.test(String(res.getHeader('Cache-Control')))) res.setHeader('Cache-Control', 'private, no-store'); } }));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
